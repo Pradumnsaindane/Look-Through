@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCustomers } from './customerApi';
 import { 
   Users, 
   Search, 
@@ -19,7 +20,6 @@ import { CustomerDetailDrawer } from './CustomerDetailDrawer';
 
 export const CustomersView: React.FC = () => {
   const { 
-    customers, 
     customerSubTab, 
     setCustomerSubTab, 
     setSelectedCustomer, 
@@ -31,13 +31,10 @@ export const CustomersView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Attention' | 'At Risk' | 'New'>('All');
 
-  const filteredCustomers = customers.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          c.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          c.industry.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const [page, setPage] = useState(1);
+  const { customers, total, isLoading, error, mutate } = useCustomers(searchQuery, statusFilter, page);
+  const filteredCustomers = customers;
+  const pageCount = Math.max(1, Math.ceil(total / 20));
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -151,7 +148,10 @@ export const CustomersView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/80">
-                  {filteredCustomers.map(c => {
+                  {isLoading && <tr><td colSpan={7} className="p-8 text-center text-xs text-slate-400">Loading customers…</td></tr>}
+                  {error && <tr><td colSpan={7} className="p-8 text-center text-xs text-rose-300">{error.message} <button onClick={() => mutate()} className="ml-2 underline">Retry</button></td></tr>}
+                  {!isLoading && !error && filteredCustomers.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-xs text-slate-400">No customers match these filters.</td></tr>}
+                  {!isLoading && !error && filteredCustomers.map(c => {
                     return (
                       <tr
                         key={c.id}
@@ -244,6 +244,14 @@ export const CustomersView: React.FC = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>{total} customer records</span>
+            <div className="flex items-center gap-2">
+              <button disabled={page <= 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="px-3 py-1.5 rounded-lg border border-slate-800 disabled:opacity-40">Previous</button>
+              <span>Page {page} of {pageCount}</span>
+              <button disabled={page >= pageCount} onClick={() => setPage(current => Math.min(pageCount, current + 1))} className="px-3 py-1.5 rounded-lg border border-slate-800 disabled:opacity-40">Next</button>
             </div>
           </div>
         </div>

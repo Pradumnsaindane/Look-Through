@@ -18,7 +18,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
-import { Customer } from '../../types';
+import { Customer, Deal, Invoice } from '../../types';
+import { useCustomerProfile } from './customerApi';
 
 export const CustomerDetailDrawer: React.FC = () => {
   const { 
@@ -34,12 +35,13 @@ export const CustomerDetailDrawer: React.FC = () => {
   } = useBusiness();
 
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'invoices' | 'deals' | 'activity' | 'notes'>('overview');
+  const { data: profile, error: profileError } = useCustomerProfile(selectedCustomer?.id);
 
   if (!selectedCustomer) return null;
 
   const c = selectedCustomer;
-  const customerInvoices = invoices.filter(inv => inv.customerId === c.id);
-  const customerDeals = deals.filter(d => d.customerId === c.id);
+  const customerInvoices = (profile?.invoices as Invoice[] | undefined) || invoices.filter(inv => inv.customerId === c.id);
+  const customerDeals = (profile?.deals as Deal[] | undefined) || deals.filter(d => d.customerId === c.id);
   const customerTasks = tasks.filter(t => t.customerId === c.id);
   const customerEvents = activityEvents.filter(e => e.entityName.toLowerCase().includes(c.company.toLowerCase()) || e.entityName.toLowerCase().includes(c.name.toLowerCase()));
 
@@ -166,6 +168,7 @@ export const CustomerDetailDrawer: React.FC = () => {
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+          {profileError && <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">Some live customer details could not be loaded.</div>}
           {/* Quick AI Action Banner */}
           <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/60 to-indigo-950/60 border border-blue-500/20 flex items-center justify-between">
             <div className="flex items-center gap-3">
