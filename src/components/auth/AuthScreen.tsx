@@ -18,7 +18,7 @@ export const AuthScreen: React.FC = () => {
     setMessage('');
     try {
       if (mode === 'reset') {
-        const result = await authClient.requestPasswordReset({ email, redirectTo: window.location.origin });
+        const result = await authClient.requestPasswordReset({ email: email.trim().toLowerCase() });
         if (result.error) throw result.error;
         setMessage('If an account exists for that email, reset instructions are on the way.');
       } else if (mode === 'signup') {
