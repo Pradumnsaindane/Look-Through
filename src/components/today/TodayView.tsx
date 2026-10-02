@@ -16,10 +16,16 @@ import {
   Send
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { authClient } from '../../auth/neonAuthClient';
 import { useBusiness } from '../../context/BusinessContext';
 import { OperationalTodayItem } from '../../types';
 
 export const TodayView: React.FC = () => {
+  const session = authClient
+    ? (authClient.useSession() as { isPending: boolean; data?: { user?: { name?: string | null; email?: string | null } } | null })
+    : { isPending: false, data: null };
+  const userName = session.data?.user?.name || session.data?.user?.email?.split('@')[0];
+
   const { 
     todayItems, 
     toggleTodayItemDone, 
@@ -96,7 +102,7 @@ export const TodayView: React.FC = () => {
             </div>
 
             <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-              Good morning, Pradumn
+              {userName ? `Good morning, ${userName}` : 'Good morning, welcome to Look Through'}
             </h1>
             <p className="text-sm text-slate-300 mt-1 max-w-xl">
               Here is what matters right now. Resolve operational bottlenecks, unblock team decisions, and capture pipeline opportunities.
