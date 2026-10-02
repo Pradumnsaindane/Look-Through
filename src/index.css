@@ -6,6 +6,7 @@
 }
 
 :root {
+  color-scheme: light;
   --canvas: #f2f3f4;
   --sidebar: #ebedef;
   --surface: #ffffff;
@@ -60,3 +61,27 @@ button { cursor: pointer; }
 
 @keyframes ledger-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .ledger-entrance { animation: ledger-in 320ms cubic-bezier(.16,1,.3,1) both; }
+
+/* Shared widget palette: legacy utility classes now follow the active ledger theme. */
+.ledger-input { background: var(--surface); border: 1px solid var(--strong); color: var(--ink); }
+.ledger-input:focus-visible { border-color: var(--ink); }
+.ledger-sidebar .text-white, .ledger-sidebar .text-slate-100, .ledger-sidebar .text-slate-200 { color: inherit !important; }
+.ledger-sidebar .bg-slate-900 { color: white !important; }
+.dark .ledger-sidebar .text-white, .dark .ledger-sidebar .text-slate-100, .dark .ledger-sidebar .text-slate-200 { color: var(--ink) !important; }
+.dark .ledger-sidebar .bg-slate-900 { color: var(--ink) !important; }
+.dark .ledger-sidebar .bg-slate-900 { background-color: var(--widget-deep) !important; }
+.bg-white { background-color: var(--surface) !important; }
+.bg-slate-950, .bg-slate-950\/40, .bg-slate-950\/70 { background-color: var(--widget-deep) !important; }
+.bg-slate-900, .bg-slate-900\/90, .bg-slate-900\/40 { background-color: var(--widget-surface) !important; }
+.bg-slate-800, .bg-slate-800\/60 { background-color: var(--widget-raised) !important; }
+.border-slate-800, .border-slate-800\/60, .border-slate-700 { border-color: var(--hairline) !important; }
+.text-white, .text-slate-100, .text-slate-200 { color: var(--ink) !important; }
+.text-slate-300, .text-slate-400 { color: var(--muted) !important; }
+.text-slate-500 { color: var(--faint) !important; }
+.hover\:text-slate-200:hover { color: var(--ink) !important; }
+.hover\:border-slate-700:hover { border-color: var(--strong) !important; }
+.bg-gradient-to-r, .bg-gradient-to-br { background-image: none !important; background-color: var(--widget-surface) !important; }
+.dark { color-scheme: dark; }
+.dark .ledger-shell { --canvas: #111318; --sidebar: #191c23; --surface: #20242d; --ink: #f4f5f7; --muted: #aeb6c4; --faint: #7f8998; --hairline: #343b49; --strong: #566071; --marker: #f7c948; --marker-tint: #3c3217; --widget-deep: #0c1020; --widget-surface: #252c3e; --widget-raised: #30394d; }
+:root, .ledger-shell { --widget-deep: #f7f8fa; --widget-surface: #ffffff; --widget-raised: #eef1f4; }
+@media (prefers-color-scheme: dark) { :root:not(.dark) { color-scheme: dark; } }
