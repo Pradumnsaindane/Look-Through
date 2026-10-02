@@ -14,6 +14,7 @@ import {
   HealthMetric,
   IntegrationService 
 } from '../types';
+import { saveCustomer } from '../components/customers/customerApi';
 import { 
   INITIAL_HEALTH_METRICS, 
   INITIAL_CUSTOMERS, 
@@ -122,7 +123,7 @@ interface BusinessContextType {
   markAlertRead: (alertId: string) => void;
   
   // Creation Handlers
-  createCustomer: (customerData: Partial<Customer>) => void;
+  createCustomer: (customerData: Partial<Customer>) => void | Promise<void>;
   createInvoice: (invoiceData: Partial<Invoice>) => void;
   createExpense: (expenseData: Partial<Expense>) => void;
   createTask: (taskData: Partial<Task>) => void;
@@ -434,47 +435,13 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   // Creation functions
-  const createCustomer = (data: Partial<Customer>) => {
-    const newCust: Customer = {
-      id: `cust-${Date.now()}`,
-      name: data.name || 'New Client Enterprise',
-      company: data.company || data.name || 'Enterprise Co',
-      email: data.email || 'contact@company.com',
-      phone: data.phone || '+91 98000 00000',
-      revenue: data.revenue || 0,
-      formattedRevenue: data.revenue ? `₹${(data.revenue / 100000).toFixed(1)}L` : '₹0',
-      lastActivity: 'Today',
-      lastActivityDaysAgo: 0,
-      status: 'New',
-      healthScore: 85,
-      openInvoicesCount: 0,
-      openInvoicesAmount: 0,
-      openOpportunitiesCount: 0,
-      openOpportunitiesAmount: 0,
-      avatarBg: 'from-blue-600 to-cyan-700',
-      tags: data.tags || ['New Account', 'Active'],
-      industry: data.industry || 'Technology & Business Services',
-      notes: ['Customer created via Universal Create Menu.'],
-    };
-
-    setCustomers(prev => [newCust, ...prev]);
-    addToast({
-      type: 'success',
-      title: 'Customer Created',
-      description: `Account for ${newCust.name} successfully initialized.`,
-    });
-
-    const newEvent: ActivityEvent = {
-      id: `act-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      timeLabel: 'Just now',
-      title: 'New customer created',
-      entityName: newCust.name,
-      category: 'customers',
-      iconType: 'customer',
-      severity: 'normal'
-    };
-    setActivityEvents(prev => [newEvent, ...prev]);
+  const createCustomer = async (data: Partial<Customer>) => {
+    try {
+      const created = await saveCustomer({ name: data.name || '', email: data.email, phone: data.phone });
+      addToast({ type: 'success', title: 'Customer Created', description: `Account for ${created.name} successfully initialized.` });
+    } catch (error) {
+      addToast({ type: 'error', title: 'Customer Not Created', description: error instanceof Error ? error.message : 'Customer could not be saved.' });
+    }
   };
 
   const createInvoice = (data: Partial<Invoice>) => {
