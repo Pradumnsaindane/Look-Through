@@ -1,4 +1,4 @@
-import { bigint, char, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { bigint, boolean, char, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 const timestamps = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -90,6 +90,34 @@ export const tasks = pgTable('tasks', {
   priority: text('priority').notNull().default('medium'),
   dueAt: timestamp('due_at', { withTimezone: true }),
   ...timestamps,
+})
+
+export const aiRuns = pgTable('ai_runs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id').notNull(),
+  actorId: uuid('actor_id'),
+  requestedMode: text('requested_mode').notNull().default('READ'),
+  prompt: text('prompt').notNull(),
+  groundedSources: jsonb('grounded_sources').notNull().default([]),
+  status: text('status').notNull().default('completed'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+})
+
+export const aiActions = pgTable('ai_actions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  runId: uuid('run_id').notNull(),
+  organizationId: uuid('organization_id').notNull(),
+  actorId: uuid('actor_id'),
+  toolName: text('tool_name').notNull(),
+  permissionLevel: text('permission_level').notNull(),
+  status: text('status').notNull().default('prepared'),
+  input: jsonb('input').notNull().default({}),
+  output: jsonb('output'),
+  approvalRequired: boolean('approval_required').notNull().default(true),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  executedAt: timestamp('executed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 export const auditLogs = pgTable('audit_logs', {
