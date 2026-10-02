@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "typecheck": "tsc -b --pretty false",
+    "lint": "oxlint src",
+    "format:check": "node scripts/check-format.mjs",
+    "test": "node --test tests/**/*.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
