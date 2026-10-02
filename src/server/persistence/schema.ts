@@ -5,6 +5,41 @@ const timestamps = {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }
 
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey(),
+  email: text('email').notNull(),
+  displayName: text('display_name').notNull(),
+  ...timestamps,
+})
+
+export const roles = pgTable('roles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id'),
+  name: text('name').notNull(),
+  ...timestamps,
+})
+
+export const permissions = pgTable('permissions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  key: text('key').notNull(),
+  description: text('description').notNull().default(''),
+  ...timestamps,
+})
+
+export const memberships = pgTable('memberships', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  roleId: uuid('role_id'),
+  ...timestamps,
+})
+
+export const rolePermissions = pgTable('role_permissions', {
+  roleId: uuid('role_id').notNull(),
+  permissionId: uuid('permission_id').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const organizations = pgTable('organizations', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
