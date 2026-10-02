@@ -3,15 +3,14 @@ import { sql } from 'drizzle-orm'
 type VercelRequest = { method?: string; query: Record<string, string | string[] | undefined> }
 type VercelResponse = { status: (code: number) => VercelResponse; json: (body: unknown) => VercelResponse }
 import { db } from '../src/server/persistence/drizzle'
-
-const unauthorized = (res: VercelResponse, message: string) => res.status(401).json({ ok: false, error: { code: 'UNAUTHORIZED', message } })
+import { authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: { code: 'METHOD_NOT_ALLOWED', message: 'GET required' } })
-  const organizationId = typeof req.query.organizationId === 'string' ? req.query.organizationId : undefined
-  if (!organizationId) return unauthorized(res, 'Select an organization to load dashboard data.')
-
   try {
+    const context = await requireOrganizationContext(req)
+    requirePermission(context, 'analytics.read')
+    const organizationId = context.organizationId
     const [financial, counts, pipeline, tasks, insights, alerts, activity] = await Promise.all([
       db.execute(sql`select
         coalesce((select sum(total_minor) from invoices where organization_id = ${organizationId} and status = 'paid' and created_at >= date_trunc('month', now())), 0)::bigint as revenue_minor,
@@ -32,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ])
     return res.status(200).json({ ok: true, data: { financial: financial.rows[0], counts: counts.rows[0], pipeline: pipeline.rows, tasks: tasks.rows, insights: insights.rows, alerts: alerts.rows, activity: activity.rows } })
   } catch (error) {
+    if (error instanceof Error && 'status' in error) return authFailure(res, error)
     console.error('[dashboard] query failed', error)
     return res.status(500).json({ ok: false, error: { code: 'DASHBOARD_QUERY_FAILED', message: 'Dashboard data could not be loaded.' } })
   }
