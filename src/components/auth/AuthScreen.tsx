@@ -82,19 +82,19 @@ export const AuthScreen: React.FC = () => {
               <div className="w-full max-w-[410px]">
                 <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#f7c948]">{copy.eyebrow}</p>
                 <h1 id="auth-title" className="text-3xl font-medium tracking-[-0.04em] text-white sm:text-[42px] sm:leading-[1.05]">{copy.title}</h1>
-                <p className="mt-4 text-sm leading-6 text-white/50">{copy.description}</p>
+                <p className="mt-4 text-sm leading-6 text-[#c4cad4]">{copy.description}</p>
 
                 <form onSubmit={submit} className="mt-9 space-y-4">
                   {mode === 'signup' && <div><label htmlFor="auth-name" className="sr-only">Full name</label><input id="auth-name" required value={name} onChange={event => setName(event.target.value)} placeholder="Full name" autoComplete="name" className="auth-field" /></div>}
                   <div><label htmlFor="auth-email" className="sr-only">Email address</label><input id="auth-email" required type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="Email address" autoComplete="email" className="auth-field" /></div>
-                  {mode !== 'reset' && <div className="relative"><label htmlFor="auth-password" className="sr-only">Password</label><input id="auth-password" required minLength={8} type={showPassword ? 'text' : 'password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} className="auth-field pr-12" /><button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-2 text-white/40 transition hover:text-white focus-visible:outline-white">{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></div>}
-                  {mode === 'login' && <div className="flex justify-end"><button type="button" onClick={() => changeMode('reset')} className="text-xs text-white/50 transition hover:text-white">Forgot password?</button></div>}
+                  {mode !== 'reset' && <div className="relative"><label htmlFor="auth-password" className="sr-only">Password</label><input id="auth-password" required minLength={8} type={showPassword ? 'text' : 'password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} className="auth-field pr-12" /><button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-2 text-[#c4cad4] transition hover:text-white focus-visible:outline-white">{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></div>}
+                  {mode === 'login' && <div className="flex justify-end"><button type="button" onClick={() => changeMode('reset')} className="text-xs text-[#c4cad4] transition hover:text-white">Forgot password?</button></div>}
                   <button type="submit" disabled={busy} className="group flex h-12 w-full items-center justify-center gap-2 rounded-[3px] bg-[#f7c948] px-5 text-sm font-semibold text-[#111318] transition hover:bg-[#ffd968] disabled:cursor-wait disabled:opacity-60">{busy && <LoaderCircle className="size-4 animate-spin" />}{busy ? copy.loading : copy.action}<ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" /></button>
                 </form>
 
-                {message && <p role="status" aria-live="polite" className="mt-4 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2.5 text-sm leading-5 text-white/70">{message}</p>}
-                <div className="mt-8 flex items-center justify-center gap-1.5 text-sm text-white/45">
-                  {mode === 'signup' ? <><span>Already have an account?</span><button type="button" onClick={() => changeMode('login')} className="font-medium text-white transition hover:text-[#a9caff]">Sign in</button></> : mode === 'reset' ? <><span>Remember your password?</span><button type="button" onClick={() => changeMode('login')} className="font-medium text-white transition hover:text-[#a9caff]">Back to sign in</button></> : <><span>New to Look Through?</span><button type="button" onClick={() => changeMode('signup')} className="font-medium text-white transition hover:text-[#a9caff]">Create an account</button></>}
+                {message && <p role="status" aria-live="polite" className="mt-4 rounded-lg border border-[#566071] bg-[#252c3e] px-3 py-2.5 text-sm leading-5 text-[#e2e6ed]">{message}</p>}
+                <div className="mt-8 flex items-center justify-center gap-1.5 text-sm text-[#c4cad4]">
+                  {mode === 'signup' ? <><span>Already have an account?</span><button type="button" onClick={() => changeMode('login')} className="font-medium text-[#f7c948] transition hover:text-[#ffd968]">Sign in</button></> : mode === 'reset' ? <><span>Remember your password?</span><button type="button" onClick={() => changeMode('login')} className="font-medium text-[#f7c948] transition hover:text-[#ffd968]">Back to sign in</button></> : <><span>New to Look Through?</span><button type="button" onClick={() => changeMode('signup')} className="font-medium text-[#f7c948] transition hover:text-[#ffd968]">Create an account</button></>}
                 </div>
               </div>
             </section>
@@ -110,7 +110,7 @@ export const AuthScreen: React.FC = () => {
             </aside>
           </div>
         </div>
-        <footer className="flex justify-center pb-1 text-[11px] text-white/30">By continuing, you agree to use Look Through securely.</footer>
+        <footer className="flex justify-center pb-1 text-[11px] text-[#9da6b5]">By continuing, you agree to use Look Through securely.</footer>
       </div>
     </main>
   );
