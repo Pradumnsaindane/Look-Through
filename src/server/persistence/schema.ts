@@ -1,0 +1,75 @@
+import { bigint, char, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+
+const timestamps = {
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}
+
+export const organizations = pgTable('organizations', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  ...timestamps,
+})
+
+export const customers = pgTable('customers', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id').notNull(),
+  name: text('name').notNull(),
+  email: text('email'),
+  phone: text('phone'),
+  status: text('status').notNull().default('active'),
+  ...timestamps,
+})
+
+export const deals = pgTable('deals', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id').notNull(),
+  customerId: uuid('customer_id'),
+  leadId: uuid('lead_id'),
+  name: text('name').notNull(),
+  amountMinor: bigint('amount_minor', { mode: 'number' }).notNull().default(0),
+  currency: char('currency', { length: 3 }).notNull().default('USD'),
+  stage: text('stage').notNull().default('lead'),
+  ...timestamps,
+})
+
+export const invoices = pgTable('invoices', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id').notNull(),
+  customerId: uuid('customer_id'),
+  number: text('number').notNull(),
+  status: text('status').notNull().default('draft'),
+  currency: char('currency', { length: 3 }).notNull().default('USD'),
+  totalMinor: bigint('total_minor', { mode: 'number' }).notNull().default(0),
+  dueAt: timestamp('due_at', { withTimezone: true }),
+  ...timestamps,
+})
+
+export const tasks = pgTable('tasks', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id').notNull(),
+  projectId: uuid('project_id'),
+  assigneeId: uuid('assignee_id'),
+  title: text('title').notNull(),
+  status: text('status').notNull().default('todo'),
+  priority: text('priority').notNull().default('medium'),
+  dueAt: timestamp('due_at', { withTimezone: true }),
+  ...timestamps,
+})
+
+export const auditLogs = pgTable('audit_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organizationId: uuid('organization_id').notNull(),
+  actorId: uuid('actor_id'),
+  action: text('action').notNull(),
+  entityType: text('entity_type').notNull(),
+  entityId: uuid('entity_id'),
+  requestId: text('request_id').notNull(),
+  ...timestamps,
+})
+
+export type CustomerRow = typeof customers.$inferSelect
+export type NewCustomerRow = typeof customers.$inferInsert
+export type DealRow = typeof deals.$inferSelect
+export type InvoiceRow = typeof invoices.$inferSelect
+export type TaskRow = typeof tasks.$inferSelect
