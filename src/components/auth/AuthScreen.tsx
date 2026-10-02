@@ -18,7 +18,7 @@ export const AuthScreen: React.FC = () => {
     setMessage('');
     try {
       if (mode === 'reset') {
-        const result = await authClient.requestPasswordReset({ email, redirectTo: window.location.origin });
+        const result = await authClient.requestPasswordReset({ email: email.trim().toLowerCase() });
         if (result.error) throw result.error;
         setMessage('If an account exists for that email, reset instructions are on the way.');
       } else if (mode === 'signup') {
@@ -33,15 +33,18 @@ export const AuthScreen: React.FC = () => {
         return;
       }
     } catch (error) {
-      const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : '';
-      const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : 0;
-      setMessage(
-        mode === 'signup' && (code === 'USER_ALREADY_EXISTS' || status === 409)
+      const details = typeof error === 'object' && error !== null ? error as { code?: unknown; status?: unknown; message?: unknown } : {};
+      const code = typeof details.code === 'string' ? details.code : '';
+      const status = typeof details.status === 'number' ? details.status : 0;
+      console.warn('[auth] request failed', { mode, status, code });
+      const message = mode === 'reset'
+        ? 'We couldn’t send the password reset email. Check the email address and try again.'
+        : mode === 'signup' && (code === 'USER_ALREADY_EXISTS' || status === 409)
           ? 'An account already exists for this email. Sign in instead.'
           : mode === 'login' && (code === 'INVALID_EMAIL_OR_PASSWORD' || status === 401)
             ? 'The email or password is incorrect.'
-            : 'Authentication failed. Check your details and try again.',
-      );
+            : 'Authentication is temporarily unavailable. Please try again.';
+      setMessage(message);
     } finally {
       setBusy(false);
     }
