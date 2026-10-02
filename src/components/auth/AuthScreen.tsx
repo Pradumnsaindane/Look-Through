@@ -18,18 +18,30 @@ export const AuthScreen: React.FC = () => {
     setMessage('');
     try {
       if (mode === 'reset') {
-        await authClient.requestPasswordReset({ email, redirectTo: window.location.origin });
+        const result = await authClient.requestPasswordReset({ email, redirectTo: window.location.origin });
+        if (result.error) throw result.error;
         setMessage('If an account exists for that email, reset instructions are on the way.');
       } else if (mode === 'signup') {
-        const result = await authClient.signUp.email({ name, email, password });
+        const result = await authClient.signUp.email({ name: name.trim(), email: email.trim().toLowerCase(), password });
         if (result.error) throw result.error;
-        setMessage('Account created. Check your inbox to verify your email.');
+        window.location.assign(window.location.origin);
+        return;
       } else {
-        const result = await authClient.signIn.email({ email, password });
+        const result = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
         if (result.error) throw result.error;
+        window.location.assign(window.location.origin);
+        return;
       }
-    } catch {
-      setMessage('Authentication failed. Check your details and try again.');
+    } catch (error) {
+      const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : '';
+      const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : 0;
+      setMessage(
+        mode === 'signup' && (code === 'USER_ALREADY_EXISTS' || status === 409)
+          ? 'An account already exists for this email. Sign in instead.'
+          : mode === 'login' && (code === 'INVALID_EMAIL_OR_PASSWORD' || status === 401)
+            ? 'The email or password is incorrect.'
+            : 'Authentication failed. Check your details and try again.',
+      );
     } finally {
       setBusy(false);
     }
