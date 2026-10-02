@@ -17,7 +17,6 @@ import { AIIntelligenceView } from './components/ai/AIIntelligenceView';
 import { AlertsView } from './components/alerts/AlertsView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
-import { AuthGate } from './components/auth/AuthGate';
 import { RequireAuthentication } from './components/auth/RequireAuthentication';
 const MobileNavigation: React.FC = () => {
   const { setActiveTab } = useBusiness();
@@ -48,16 +47,16 @@ const MainContent: React.FC = () => {
 };
 
 export function App() {
-  return <AuthGate><BusinessProvider>
-      <div className="ledger-shell flex h-screen overflow-hidden antialiased">
+  return <BusinessProvider>
+    <div className="ledger-shell flex h-screen overflow-hidden antialiased">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar />
         <MainContent />
         <MobileNavigation />
       </div>
-        <CommandMenu /><UniversalCreateModal /><AIActionModal /><NotificationDrawer /><ToastContainer />
-      </div>
-  </BusinessProvider></AuthGate>;
+      <CommandMenu /><UniversalCreateModal /><AIActionModal /><NotificationDrawer /><ToastContainer />
+    </div>
+  </BusinessProvider>;
 }
 export default App;
