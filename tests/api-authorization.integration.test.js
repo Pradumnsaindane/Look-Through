@@ -14,6 +14,7 @@ let vite
 let modules
 let currentIdentity
 let requestedCustomerId
+let originalFetch
 const originalDb = {}
 
 function responseRecorder() {
@@ -32,6 +33,7 @@ function sessionFor(cookie) {
 }
 
 before(async () => {
+  process.env.DATABASE_URL ||= 'postgresql://test:test@localhost:5432/test'
   process.env.NEON_AUTH_BASE_URL = 'https://auth.test/neondb/auth'
   process.env.VITE_NEON_AUTH_URL = 'https://auth.test/neondb/auth'
   vite = await createServer({ server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom', logLevel: 'error' })
@@ -60,8 +62,11 @@ after(async () => {
 
 function installDbMock() {
   let selectCall = 0
+  currentIdentity = users['cookie-a']
+  requestedCustomerId = undefined
   modules.db.select = () => {
     selectCall += 1
+    const callNumber = selectCall
     const chain = {
       from(table) {
         chain.table = table
@@ -69,14 +74,17 @@ function installDbMock() {
       },
       leftJoin() { return chain },
       innerJoin() { return chain },
-      where() {
-        const rows = selectCall === 1
-          ? [{ organizationId: currentIdentity.organizationId, roleId: currentIdentity.permissions.includes('customers.create') ? 'role-admin' : 'role-viewer', roleName: currentIdentity.permissions.includes('customers.create') ? 'Admin' : 'Viewer' }]
-          : selectCall === 2
-            ? currentIdentity.permissions.map((key) => ({ key }))
+      rows() {
+        return callNumber % 2 === 1
+          ? callNumber === 1
+            ? [{ organizationId: currentIdentity.organizationId, roleId: currentIdentity.permissions.includes('customers.create') ? 'role-admin' : 'role-viewer', roleName: currentIdentity.permissions.includes('customers.create') ? 'Admin' : 'Viewer' }]
             : requestedCustomerId === customerB.id && currentIdentity.organizationId !== customerB.organizationId ? [] : [currentIdentity.organizationId === customerB.organizationId ? customerB : customerA]
-        return Promise.resolve(rows)
+          : callNumber === 4
+            ? [{ count: 1 }]
+            : currentIdentity.permissions.map((key) => ({ key }))
       },
+      where() { return chain },
+      then(resolve, reject) { return Promise.resolve(chain.rows()).then(resolve, reject) },
       limit() { return chain },
       orderBy() { return chain },
       offset() { return chain },
@@ -119,7 +127,8 @@ test('dashboard and AI handlers use the verified session organization', async ()
   assert.equal(dashboard.result.statusCode, 200)
   const ai = responseRecorder()
   await modules.ai(request('cookie-b', 'POST', { body: { organizationId: users['cookie-a'].organizationId, prompt: 'read', tool: 'not-approved' } }), ai.response)
-  assert.equal(ai.result.statusCode, 404)
+  assert.equal(ai.result.statusCode, 403)
+  assert.equal(ai.result.body.error.code, 'FORBIDDEN')
   restoreDb()
 })
 
