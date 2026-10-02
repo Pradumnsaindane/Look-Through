@@ -34,7 +34,7 @@ const cookieHeader = (request: ProtectedRequest) => header(request, 'cookie')
 async function fetchVerifiedSession(request: ProtectedRequest) {
   const baseUrl = process.env.NEON_AUTH_BASE_URL
   if (!baseUrl) throw new AuthError(500, 'AUTH_NOT_CONFIGURED', 'Authentication is not configured.')
-  const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/auth/get-session`, {
+  const response = await fetch(`${baseUrl.replace(/\/$/, '')}/get-session`, {
     headers: { cookie: cookieHeader(request), origin: process.env.VITE_NEON_AUTH_URL || baseUrl },
     cache: 'no-store',
   })
