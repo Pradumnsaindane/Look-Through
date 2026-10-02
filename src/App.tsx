@@ -21,7 +21,7 @@ import { SettingsView } from './components/settings/SettingsView';
 const MobileNavigation: React.FC = () => {
   const { setActiveTab } = useBusiness();
   const tabs = [{ id: 'overview' as const, label: 'Overview' }, { id: 'today' as const, label: 'Today' }, { id: 'customers' as const, label: 'Customers' }, { id: 'work' as const, label: 'Work' }, { id: 'settings' as const, label: 'More' }];
-  return <nav className="fixed inset-x-0 bottom-0 z-30 hidden h-14 border-t border-[#d3d6da] bg-white px-2 sm:hidden">{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex flex-1 items-center justify-center text-[11px] capitalize ledger-muted">{tab.label}</button>)}</nav>;
+  return <nav className="fixed inset-x-0 bottom-0 z-30 hidden h-14 border-t border-[var(--hairline)] bg-[var(--surface)] px-2 sm:hidden">{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex flex-1 items-center justify-center text-[11px] capitalize ledger-muted">{tab.label}</button>)}</nav>;
 };
 
 const MainContent: React.FC = () => {
