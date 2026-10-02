@@ -39,8 +39,16 @@ async function fetchVerifiedSession(request: ProtectedRequest) {
     cache: 'no-store',
   })
   if (!response.ok) return null
-  const payload = await response.json() as { user?: { id?: string }; session?: { userId?: string; activeOrganizationId?: string } }
-  if (!payload.user?.id) return null
+  const raw = await response.json() as {
+    user?: { id?: string }
+    session?: { userId?: string; activeOrganizationId?: string | null; expiresAt?: string | Date }
+    data?: { user?: { id?: string }; session?: { userId?: string; activeOrganizationId?: string | null; expiresAt?: string | Date } }
+  }
+  const payload = raw.data?.user ? raw.data : raw
+  const userId = payload.user?.id
+  const sessionUserId = payload.session?.userId
+  if (!userId || (sessionUserId && sessionUserId !== userId)) return null
+  if (payload.session?.expiresAt && new Date(payload.session.expiresAt).getTime() <= Date.now()) return null
   return payload
 }
 
