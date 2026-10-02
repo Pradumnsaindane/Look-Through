@@ -11,7 +11,7 @@ export const DashboardView: React.FC = () => {
 
   if (isLoading) return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 items-center justify-center ledger-muted">Loading live business data…</div></div>;
   if (error) return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-4 text-center"><p className="font-semibold">Dashboard data is unavailable</p><p className="max-w-md text-sm ledger-muted">{error.message}</p><button className="ledger-button" onClick={() => mutate()}><RefreshCw className="mr-2 inline size-3" />Retry</button></div></div>;
-  if (!data) return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 items-center justify-center text-center ledger-muted">No organization is selected. Choose an organization to view its dashboard.</div></div>;
+  if (!data) return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-3 px-6 text-center"><p className="text-xs font-semibold uppercase tracking-[0.16em] ledger-faint">Guest mode</p><h1 className="text-2xl font-semibold tracking-tight">Explore your business workspace</h1><p className="max-w-lg text-sm leading-6 ledger-muted">You can explore the dashboard and Today without an account. Business data, saved changes, and organization tools become available after you log in.</p></div></div>;
 
   const revenue = money(data.financial.revenue_minor);
   const overdue = money(data.counts.overdue_minor);

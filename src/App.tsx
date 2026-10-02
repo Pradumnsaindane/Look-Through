@@ -17,6 +17,7 @@ import { AIIntelligenceView } from './components/ai/AIIntelligenceView';
 import { AlertsView } from './components/alerts/AlertsView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
+import { RequireAuthentication } from './components/auth/RequireAuthentication';
 const MobileNavigation: React.FC = () => {
   const { setActiveTab } = useBusiness();
   const tabs = [{ id: 'overview' as const, label: 'Overview' }, { id: 'today' as const, label: 'Today' }, { id: 'customers' as const, label: 'Customers' }, { id: 'work' as const, label: 'Work' }, { id: 'settings' as const, label: 'More' }];
@@ -25,18 +26,22 @@ const MobileNavigation: React.FC = () => {
 
 const MainContent: React.FC = () => {
   const { activeTab } = useBusiness();
+  const protectedView = (view: React.ReactNode, capability: 'personal' | 'organization' | 'permission' = 'organization') => (
+    <RequireAuthentication capability={capability}>{view}</RequireAuthentication>
+  );
+
   return <main className="ledger-main flex-1 overflow-y-auto px-6 py-7 md:px-10 custom-scrollbar">
     <div className="mx-auto w-full max-w-[1180px]">
       {activeTab === 'overview' && <DashboardView />}
       {activeTab === 'today' && <TodayView />}
-      {activeTab === 'customers' && <CustomersView />}
-      {activeTab === 'finance' && <FinanceView />}
-      {activeTab === 'work' && <WorkView />}
-      {activeTab === 'analytics' && <AnalyticsView />}
-      {activeTab === 'ai' && <AIIntelligenceView />}
-      {activeTab === 'alerts' && <AlertsView />}
-      {activeTab === 'integrations' && <IntegrationsView />}
-      {activeTab === 'settings' && <SettingsView />}
+      {activeTab === 'customers' && protectedView(<CustomersView />)}
+      {activeTab === 'finance' && protectedView(<FinanceView />)}
+      {activeTab === 'work' && protectedView(<WorkView />)}
+      {activeTab === 'analytics' && protectedView(<AnalyticsView />)}
+      {activeTab === 'ai' && protectedView(<AIIntelligenceView />, 'permission')}
+      {activeTab === 'alerts' && protectedView(<AlertsView />)}
+      {activeTab === 'integrations' && protectedView(<IntegrationsView />, 'permission')}
+      {activeTab === 'settings' && protectedView(<SettingsView />, 'personal')}
     </div>
   </main>;
 };
