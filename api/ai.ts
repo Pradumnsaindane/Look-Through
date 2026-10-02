@@ -3,6 +3,7 @@ import type { AuthenticatedPrincipal } from '../src/server/modules/authenticatio
 import { db } from '../src/server/persistence/drizzle'
 import { aiRuns } from '../src/server/persistence/schema'
 import { eq } from 'drizzle-orm'
+import { toAppError } from '../src/shared/errors/AppError'
 import { AuthError, authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session'
 
 type Request = { method?: string; body?: unknown; headers?: Record<string, string | string[] | undefined> }
@@ -19,15 +20,19 @@ export default async function handler(req: Request, res: Response) {
     const context = await requireOrganizationContext(req)
     requirePermission(context, text(body.mode).toUpperCase() === 'WRITE' ? 'ai.execute' : 'ai.read')
     const principal: AuthenticatedPrincipal = { userId: context.userId, organizationId: context.organizationId, roles: context.roles, permissions: context.permissions }
+    const idempotencyKey = text(req.headers?.['idempotency-key']) || undefined
     const run = await createAiRun({ principal, organizationId: context.organizationId }, prompt, (text(body.mode) || 'READ') as PermissionLevel)
+    run.idempotencyKey = idempotencyKey
     const tools = createBusinessTools(run)
     const selected = tools[toolName]
     if (!selected || typeof selected.execute !== 'function') return res.status(404).json({ ok: false, error: { code: 'TOOL_NOT_FOUND', message: 'The requested AI tool is not approved.' } })
     const result = await selected.execute(body.input ?? {}, { toolCallId: `api-${run.runId}` } as never)
-    await db.update(aiRuns).set({ status: 'completed', completedAt: new Date() }).where(eq(aiRuns.id, run.runId))
+    await db.update(aiRuns).set({ status: 'completed', output: result as Record<string, unknown>, completedAt: new Date(), updatedAt: new Date() }).where(eq(aiRuns.id, run.runId))
     return res.status(200).json({ ok: true, data: { runId: run.runId, tool: toolName, result, grounded: true } })
   } catch (error) {
     if (error instanceof AuthError) return authFailure(res, error)
+    const appError = toAppError(error)
+    if (appError.statusCode >= 400 && appError.statusCode < 500) return res.status(appError.statusCode).json({ ok: false, error: { code: appError.code, message: appError.message } })
     console.error('[ai] request failed', error)
     return res.status(500).json({ ok: false, error: { code: 'AI_ACTION_FAILED', message: 'The AI request could not be completed.' } })
   }

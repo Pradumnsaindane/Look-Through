@@ -14,6 +14,7 @@ export interface OrchestratorContext {
   principal: AuthenticatedPrincipal
   organizationId: string
   runId: string
+  idempotencyKey?: string
 }
 
 const readCustomer = z.object({ customerId: z.string().uuid() })
@@ -26,9 +27,25 @@ function requireAccess(context: OrchestratorContext, permission: Parameters<type
   authorize({ principal: context.principal, organizationId: context.organizationId, permission })
 }
 
-async function recordAction(context: OrchestratorContext, toolName: string, permissionLevel: PermissionLevel, input: unknown, output: unknown, status = 'prepared') {
-  const [action] = await db.insert(aiActions).values({ runId: context.runId, organizationId: context.organizationId, actorId: context.principal.userId, toolName, permissionLevel, status, input: input as Record<string, unknown>, output: output as Record<string, unknown> }).returning()
-  await db.insert(auditLogs).values({ organizationId: context.organizationId, actorId: context.principal.userId, action: `ai.${toolName}.${status}`, entityType: 'ai_action', entityId: action.id, requestId: context.runId })
+async function recordAction(context: OrchestratorContext, toolName: string, permissionLevel: PermissionLevel, input: unknown, output: unknown, status = 'proposed') {
+  const isRead = permissionLevel === 'READ'
+  const [action] = await db.insert(aiActions).values({
+    runId: context.runId,
+    organizationId: context.organizationId,
+    actorId: context.principal.userId,
+    createdBy: context.principal.userId,
+    toolName,
+    actionType: toolName,
+    permissionLevel,
+    status: isRead ? 'executed' : status,
+    input: input as Record<string, unknown>,
+    payload: input as Record<string, unknown>,
+    output: output as Record<string, unknown>,
+    approvalRequired: !isRead,
+    executedAt: isRead ? new Date() : undefined,
+    idempotencyKey: context.idempotencyKey,
+  }).returning()
+  await db.insert(auditLogs).values({ organizationId: context.organizationId, actorId: context.principal.userId, action: `ai.${toolName}.${isRead ? 'executed' : status}`, entityType: 'ai_action', entityId: action.id, aiRunId: context.runId, aiActionId: action.id, requestId: context.runId, afterData: output as Record<string, unknown> })
   return output
 }
 
@@ -68,6 +85,6 @@ export function createBusinessTools(context: OrchestratorContext): ToolSet {
 export async function createAiRun(context: Omit<OrchestratorContext, 'runId'>, prompt: string, requestedMode: PermissionLevel = 'READ') {
   if (!permissionLevels.includes(requestedMode)) throw new AppError('VALIDATION_ERROR', 'Invalid AI permission level.', 400)
   authorize({ principal: context.principal, organizationId: context.organizationId, permission: 'ai.read' })
-  const [run] = await db.insert(aiRuns).values({ organizationId: context.organizationId, actorId: context.principal.userId, requestedMode, prompt, status: 'started' }).returning()
+  const [run] = await db.insert(aiRuns).values({ organizationId: context.organizationId, actorId: context.principal.userId, requestedMode, prompt, model: 'domain-orchestrator', input: { prompt, requestedMode }, groundedSources: [], status: 'running' }).returning()
   return { ...context, runId: run.id }
 }
