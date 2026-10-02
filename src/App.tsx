@@ -7,8 +7,6 @@ import { UniversalCreateModal } from './components/layout/UniversalCreateModal';
 import { AIActionModal } from './components/layout/AIActionModal';
 import { NotificationDrawer } from './components/layout/NotificationDrawer';
 import { ToastContainer } from './components/layout/ToastContainer';
-
-// Domain views
 import { DashboardView } from './components/dashboard/DashboardView';
 import { TodayView } from './components/today/TodayView';
 import { CustomersView } from './components/customers/CustomersView';
@@ -20,11 +18,16 @@ import { AlertsView } from './components/alerts/AlertsView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
 
+const MobileNavigation: React.FC = () => {
+  const { setActiveTab } = useBusiness();
+  const tabs = [{ id: 'overview' as const, label: 'Overview' }, { id: 'today' as const, label: 'Today' }, { id: 'customers' as const, label: 'Customers' }, { id: 'work' as const, label: 'Work' }, { id: 'settings' as const, label: 'More' }];
+  return <nav className="fixed inset-x-0 bottom-0 z-30 hidden h-14 border-t border-[#d3d6da] bg-white px-2 sm:hidden">{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex flex-1 items-center justify-center text-[11px] capitalize ledger-muted">{tab.label}</button>)}</nav>;
+};
+
 const MainContent: React.FC = () => {
   const { activeTab } = useBusiness();
-
-  return (
-    <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+  return <main className="ledger-main flex-1 overflow-y-auto px-6 py-7 md:px-10 custom-scrollbar">
+    <div className="mx-auto w-full max-w-[1180px]">
       {activeTab === 'overview' && <DashboardView />}
       {activeTab === 'today' && <TodayView />}
       {activeTab === 'customers' && <CustomersView />}
@@ -35,35 +38,21 @@ const MainContent: React.FC = () => {
       {activeTab === 'alerts' && <AlertsView />}
       {activeTab === 'integrations' && <IntegrationsView />}
       {activeTab === 'settings' && <SettingsView />}
-    </main>
-  );
+    </div>
+  </main>;
 };
 
 export function App() {
-  return (
-    <BusinessProvider>
-      <div className="flex h-screen bg-slate-950 text-slate-100 antialiased overflow-hidden font-sans">
-        {/* Left Navigation Sidebar */}
-        <Sidebar />
-
-        {/* Right Application Viewport */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 bg-grid-pattern">
-          {/* Top Control Bar */}
-          <Topbar />
-
-          {/* Primary Viewport Area */}
-          <MainContent />
-        </div>
-
-        {/* Global Modals & System Drawers */}
-        <CommandMenu />
-        <UniversalCreateModal />
-        <AIActionModal />
-        <NotificationDrawer />
-        <ToastContainer />
+  return <BusinessProvider>
+    <div className="ledger-shell flex h-screen overflow-hidden antialiased">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Topbar />
+        <MainContent />
+        <MobileNavigation />
       </div>
-    </BusinessProvider>
-  );
+      <CommandMenu /><UniversalCreateModal /><AIActionModal /><NotificationDrawer /><ToastContainer />
+    </div>
+  </BusinessProvider>;
 }
-
 export default App;
