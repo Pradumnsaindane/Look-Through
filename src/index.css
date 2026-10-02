@@ -34,15 +34,18 @@ button { cursor: pointer; }
 
 .ledger-shell { background: var(--canvas); color: var(--ink); }
 .ledger-sidebar { background: var(--sidebar); border-color: var(--hairline); }
+.ledger-active-nav { background: var(--ink); color: var(--canvas); }
+.ledger-active-nav:hover { background: var(--ink); color: var(--canvas); }
 .ledger-surface { background: var(--surface); border: 1px solid var(--strong); border-radius: 3px; }
 .ledger-rule { border-top: 2px solid var(--ink); }
 .ledger-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .ledger-muted { color: var(--muted); }
 .ledger-faint { color: var(--faint); }
 .ledger-button { border: 1px solid var(--strong); border-radius: 3px; background: transparent; color: var(--ink); padding: 9px 14px; font-weight: 600; font-size: 13px; }
-.ledger-button:hover { background: #e6e8ea; }
-.ledger-button-primary { background: var(--ink); color: white; border-color: var(--ink); }
-.ledger-button-primary:hover { background: #2a2d31; }
+.ledger-button:hover { background: var(--hairline); }
+.ledger-button-primary { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
+.ledger-button-primary:hover { background: var(--strong); border-color: var(--strong); }
+.ledger-button-primary:focus-visible { outline-color: var(--ink); }
 .ledger-marker { background: var(--marker); color: var(--ink); padding: 1px 4px; }
 
 @media (max-width: 700px) {

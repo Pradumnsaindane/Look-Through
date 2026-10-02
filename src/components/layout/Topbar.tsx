@@ -7,9 +7,8 @@ export const Topbar: React.FC = () => {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setDark(prefersDark);
-    document.documentElement.classList.toggle('dark', prefersDark);
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
   }, []);
 
   const toggleTheme = () => {
