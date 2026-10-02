@@ -87,3 +87,19 @@ button { cursor: pointer; }
 .dark { color-scheme: dark; }
 .dark .ledger-shell { --canvas: #111318; --sidebar: #191c23; --surface: #20242d; --ink: #f4f5f7; --muted: #aeb6c4; --faint: #7f8998; --hairline: #343b49; --strong: #566071; --marker: #f7c948; --marker-tint: #3c3217; --widget-deep: #0c1020; --widget-surface: #252c3e; --widget-raised: #30394d; }
 :root, .ledger-shell { --widget-deep: #f7f8fa; --widget-surface: #ffffff; --widget-raised: #eef1f4; }
+
+/* Legacy widget utilities are normalized here so every module stays readable in both themes. */
+.ledger-shell:not(.dark) [class*="bg-slate-950"] { background-color: var(--widget-deep) !important; }
+.ledger-shell:not(.dark) [class*="bg-slate-900"] { background-color: var(--widget-surface) !important; }
+.ledger-shell:not(.dark) [class*="bg-slate-800"] { background-color: var(--widget-raised) !important; }
+.ledger-shell:not(.dark) [class*="border-slate-"] { border-color: var(--hairline) !important; }
+.ledger-shell:not(.dark) [class*="text-slate-"] { color: var(--muted) !important; }
+.ledger-shell:not(.dark) [class*="text-white"] { color: var(--ink) !important; }
+.ledger-shell:not(.dark) [class*="bg-gradient-"] { background-image: none !important; background-color: var(--surface) !important; }
+
+.dark .ledger-shell [class*="bg-slate-950"] { background-color: var(--widget-deep) !important; }
+.dark .ledger-shell [class*="bg-slate-900"] { background-color: var(--widget-surface) !important; }
+.dark .ledger-shell [class*="bg-slate-800"] { background-color: var(--widget-raised) !important; }
+.dark .ledger-shell [class*="border-slate-"] { border-color: var(--hairline) !important; }
+.dark .ledger-shell [class*="text-slate-"] { color: var(--muted) !important; }
+.dark .ledger-shell [class*="text-white"] { color: var(--ink) !important; }

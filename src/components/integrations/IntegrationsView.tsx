@@ -83,7 +83,7 @@ export const IntegrationsView: React.FC = () => {
                 className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
                   isConnected
                     ? 'bg-slate-900/90 border-slate-700/80 shadow-lg'
-                    : 'bg-slate-950/60 border-slate-800 opacity-80'
+                    : 'bg-slate-950/60 border-slate-800 opacity-100'
                 }`}
               >
                 <div className="space-y-3">
