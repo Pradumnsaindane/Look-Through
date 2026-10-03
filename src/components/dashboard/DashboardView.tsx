@@ -2,7 +2,6 @@ import React from 'react';
 import { ArrowUpRight, RefreshCw } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
 import { useDashboardData } from '../../dashboard/dashboardApi';
-import { ProductStory } from './ProductStory';
 const money = (minor: string | number) => `Rs ${(Number(minor) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
 export const DashboardView: React.FC = () => {
