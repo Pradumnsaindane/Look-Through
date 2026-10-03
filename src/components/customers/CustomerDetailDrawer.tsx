@@ -25,10 +25,6 @@ export const CustomerDetailDrawer: React.FC = () => {
   const { 
     selectedCustomer, 
     setSelectedCustomer, 
-    invoices, 
-    deals, 
-    tasks, 
-    activityEvents,
     openAIActionModal,
     markInvoicePaid,
     sendInvoiceReminder
@@ -40,10 +36,10 @@ export const CustomerDetailDrawer: React.FC = () => {
   if (!selectedCustomer) return null;
 
   const c = selectedCustomer;
-  const customerInvoices = (profile?.invoices as Invoice[] | undefined) || invoices.filter(inv => inv.customerId === c.id);
-  const customerDeals = (profile?.deals as Deal[] | undefined) || deals.filter(d => d.customerId === c.id);
-  const customerTasks = tasks.filter(t => t.customerId === c.id);
-  const customerEvents = activityEvents.filter(e => e.entityName.toLowerCase().includes(c.company.toLowerCase()) || e.entityName.toLowerCase().includes(c.name.toLowerCase()));
+  const customerInvoices = profile?.invoices || [];
+  const customerDeals = profile?.deals || [];
+  const customerContacts = profile?.contacts || [];
+  const customerEvents = profile?.activity || [];
 
   const handleDraftAIFollowup = () => {
     openAIActionModal({
@@ -201,6 +197,22 @@ export const CustomerDetailDrawer: React.FC = () => {
                 </div>
               </div>
 
+              {/* Connected Contacts */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contacts</h4>
+                  <span className="text-xs text-slate-400 font-mono">{customerContacts.length} records</span>
+                </div>
+                {customerContacts.length === 0 ? (
+                  <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400 text-center">No contacts yet.</div>
+                ) : customerContacts.map(contact => (
+                  <div key={contact.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-200">{contact.name}{contact.is_primary ? ' · Primary' : ''}</span>
+                    <span className="text-slate-400">{contact.email || contact.phone || 'No contact details'}</span>
+                  </div>
+                ))}
+              </div>
+
               {/* Connected Invoices */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -251,8 +263,10 @@ export const CustomerDetailDrawer: React.FC = () => {
                   <span className="text-xs text-slate-400 font-mono">{customerDeals.length} active</span>
                 </div>
                 <div className="space-y-2">
-                  {customerDeals.map(deal => (
-                    <div key={deal.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+              {customerDeals.length === 0 ? (
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400 text-center">No deals yet.</div>
+              ) : customerDeals.map(deal => (
+                <div key={deal.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-slate-200 text-xs">{deal.title}</div>
                         <div className="text-[11px] text-slate-400">Stage: <strong className="text-blue-400 uppercase">{deal.stage}</strong> · {deal.probability}% win probability</div>
@@ -326,20 +340,18 @@ export const CustomerDetailDrawer: React.FC = () => {
           {activeSubTab === 'activity' && (
             <div className="space-y-3">
               {customerEvents.length === 0 ? (
-                <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400 text-center">
-                  No direct activity logs in this period.
-                </div>
-              ) : (
-                customerEvents.map(e => (
-                  <div key={e.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400 text-center">No activity yet.</div>
+              ) : customerEvents.map((event) => {
+                const activity = event as Record<string, unknown>;
+                return (
+                  <div key={String(activity.id)} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
                     <div>
-                      <div className="font-semibold text-slate-200">{e.title}</div>
-                      <div className="text-slate-400">{e.timeLabel}</div>
+                      <div className="font-semibold text-slate-200">{String(activity.action || 'Activity')}</div>
+                      <div className="text-slate-400">{String(activity.created_at || '')}</div>
                     </div>
-                    {e.amount && <span className="font-mono font-semibold text-slate-200">{e.amount}</span>}
                   </div>
-                ))
-              )}
+                );
+              })}
             </div>
           )}
         </div>
