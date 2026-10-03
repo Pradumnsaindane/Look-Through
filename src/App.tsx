@@ -1,5 +1,5 @@
 import React from 'react';
-import { BusinessProvider, useBusiness } from './context/BusinessContext';
+import { useBusiness } from './context/BusinessContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
 import { CommandMenu } from './components/layout/CommandMenu';
@@ -47,16 +47,14 @@ const MainContent: React.FC = () => {
 };
 
 export function App() {
-  return <BusinessProvider>
-    <div className="ledger-shell flex h-screen overflow-hidden antialiased">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Topbar />
-        <MainContent />
-        <MobileNavigation />
-      </div>
-      <CommandMenu /><UniversalCreateModal /><AIActionModal /><NotificationDrawer /><ToastContainer />
+  return <div className="ledger-shell flex h-screen overflow-hidden antialiased">
+    <Sidebar />
+    <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <Topbar />
+      <MainContent />
+      <MobileNavigation />
     </div>
-  </BusinessProvider>;
+    <CommandMenu /><UniversalCreateModal /><AIActionModal /><NotificationDrawer /><ToastContainer />
+  </div>;
 }
 export default App;
