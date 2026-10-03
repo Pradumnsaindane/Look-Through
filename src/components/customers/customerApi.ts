@@ -3,11 +3,9 @@ import type { Customer, Deal, Invoice } from '../../types'
 
 export type CustomerRecord = { id: string; organization_id: string; name: string; email: string | null; phone: string | null; status: string }
 export type CustomerProfile = { customer: CustomerRecord; deals: Deal[]; invoices: Invoice[]; activity: unknown[] }
-const organizationId = import.meta.env.VITE_ORGANIZATION_ID as string | undefined
 const headers = { 'content-type': 'application/json' }
 const fetcher = async (url: string) => {
-  if (!organizationId) throw new Error('Organization is not configured.')
-  const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}organizationId=${encodeURIComponent(organizationId)}`, { headers, credentials: 'include' })
+  const response = await fetch(url, { headers, credentials: 'include' })
   const payload = await response.json()
   if (!response.ok || !payload.ok) throw new Error(payload.error?.message || 'Customer data could not be loaded.')
   return payload.data
@@ -24,7 +22,7 @@ const toCustomer = (row: CustomerRecord): Customer => ({ id: row.id, name: row.n
 export function useCustomers(search: string, status: string, page: number, pageSize = 20) {
   const query = new URLSearchParams({ q: search, status: status === 'All' ? 'all' : status, page: String(page), pageSize: String(pageSize) })
   const result = useSWR<{ rows: CustomerRecord[]; total: number; page: number; pageSize: number }>(`/api/customers?${query}`, fetcher, { keepPreviousData: true, revalidateOnFocus: false })
-  return { ...result, customers: result.data?.rows.map(toCustomer) || [], total: result.data?.total || 0, organizationId }
+  return { ...result, customers: result.data?.rows.map(toCustomer) || [], total: result.data?.total || 0 }
 }
 const profileFetcher = async (url: string): Promise<CustomerProfile> => {
   const data = await fetcher(url) as { customer: CustomerRecord; deals: Record<string, unknown>[]; invoices: Record<string, unknown>[]; activity: unknown[] }
@@ -34,15 +32,13 @@ export function useCustomerProfile(id?: string) {
   return useSWR<CustomerProfile>(id ? `/api/customers?id=${encodeURIComponent(id)}` : null, profileFetcher, { revalidateOnFocus: false })
 }
 export async function saveCustomer(input: { id?: string; name: string; email?: string; phone?: string }) {
-  if (!organizationId) throw new Error('Organization is not configured.')
-  const response = await fetch('/api/customers', { method: input.id ? 'PATCH' : 'POST', headers, credentials: 'include', body: JSON.stringify({ ...input, organizationId }) })
+  const response = await fetch('/api/customers', { method: input.id ? 'PATCH' : 'POST', headers, credentials: 'include', body: JSON.stringify(input) })
   const payload = await response.json()
   if (!response.ok || !payload.ok) throw new Error(payload.error?.message || 'Customer could not be saved.')
   return payload.data as CustomerRecord
 }
 export async function archiveCustomer(id: string) {
-  if (!organizationId) throw new Error('Organization is not configured.')
-  const response = await fetch('/api/customers', { method: 'DELETE', headers, credentials: 'include', body: JSON.stringify({ id, organizationId }) })
+  const response = await fetch('/api/customers', { method: 'DELETE', headers, credentials: 'include', body: JSON.stringify({ id }) })
   const payload = await response.json()
   if (!response.ok || !payload.ok) throw new Error(payload.error?.message || 'Customer could not be archived.')
   return payload.data as CustomerRecord

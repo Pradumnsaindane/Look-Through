@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Zap, Users, IndianRupee, CheckSquare, BarChart3, Sparkles, Bell, Plug2, Settings } from 'lucide-react';
+import { LayoutDashboard, Zap, Users, IndianRupee, CheckSquare, BarChart3, Sparkles, Bell, Plug2, Settings, type LucideIcon } from 'lucide-react';
 import { authClient } from '../../auth/neonAuthClient';
 import { useBusiness } from '../../context/BusinessContext';
 import { NavigationTab } from '../../types';
@@ -11,12 +11,12 @@ export const Sidebar: React.FC = () => {
     : { isPending: false, data: null };
   const user = session.data?.user;
   const displayName = user?.name || user?.email?.split('@')[0] || 'Welcome';
-  const nav = [
+  const nav: Array<{ id: NavigationTab; label: string; icon: LucideIcon; count?: number; marker?: string }> = [
     { id: 'overview' as NavigationTab, label: 'Overview', icon: LayoutDashboard },
     { id: 'today' as NavigationTab, label: 'Today', icon: Zap, count: todayItems.filter(i => !i.isDone).length },
-    { id: 'customers' as NavigationTab, label: 'Customers', icon: Users, count: 248 },
-    { id: 'finance' as NavigationTab, label: 'Finance', icon: IndianRupee, marker: invoices.some(i => i.status === 'overdue') ? '84k' : undefined },
-    { id: 'work' as NavigationTab, label: 'Work', icon: CheckSquare, count: 4 },
+    { id: 'customers' as NavigationTab, label: 'Customers', icon: Users },
+    { id: 'finance' as NavigationTab, label: 'Finance', icon: IndianRupee },
+    { id: 'work' as NavigationTab, label: 'Work', icon: CheckSquare },
     { id: 'analytics' as NavigationTab, label: 'Analytics', icon: BarChart3 },
     { id: 'ai' as NavigationTab, label: 'AI', icon: Sparkles },
     { id: 'alerts' as NavigationTab, label: 'Alerts', icon: Bell, count: alerts.filter(a => !a.isRead).length },
