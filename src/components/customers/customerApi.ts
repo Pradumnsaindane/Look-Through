@@ -2,7 +2,8 @@ import useSWR from 'swr'
 import type { Customer, Deal, Invoice } from '../../types'
 
 export type CustomerRecord = { id: string; organization_id: string; name: string; email: string | null; phone: string | null; status: string }
-export type CustomerProfile = { customer: CustomerRecord; deals: Deal[]; invoices: Invoice[]; activity: unknown[] }
+export type CustomerContact = { id: string; name: string; email: string | null; phone: string | null; is_primary: boolean }
+export type CustomerProfile = { customer: CustomerRecord; contacts: CustomerContact[]; deals: Deal[]; invoices: Invoice[]; activity: unknown[] }
 const headers = { 'content-type': 'application/json' }
 const fetcher = async (url: string) => {
   const response = await fetch(url, { headers, credentials: 'include' })
@@ -25,8 +26,8 @@ export function useCustomers(search: string, status: string, page: number, pageS
   return { ...result, customers: result.data?.rows.map(toCustomer) || [], total: result.data?.total || 0 }
 }
 const profileFetcher = async (url: string): Promise<CustomerProfile> => {
-  const data = await fetcher(url) as { customer: CustomerRecord; deals: Record<string, unknown>[]; invoices: Record<string, unknown>[]; activity: unknown[] }
-  return { customer: data.customer, deals: data.deals.map(toDeal), invoices: data.invoices.map(toInvoice), activity: data.activity }
+  const data = await fetcher(url) as { customer: CustomerRecord; contacts: CustomerContact[]; deals: Record<string, unknown>[]; invoices: Record<string, unknown>[]; activity: unknown[] }
+  return { customer: data.customer, contacts: data.contacts || [], deals: data.deals.map(toDeal), invoices: data.invoices.map(toInvoice), activity: data.activity || [] }
 }
 export function useCustomerProfile(id?: string) {
   return useSWR<CustomerProfile>(id ? `/api/customers?id=${encodeURIComponent(id)}` : null, profileFetcher, { revalidateOnFocus: false })

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { mutate as mutateSWR } from 'swr';
 import confetti from 'canvas-confetti';
 import { 
   NavigationTab, 
@@ -437,8 +438,9 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Creation functions
   const createCustomer = async (data: Partial<Customer>) => {
     try {
-      const created = await saveCustomer({ name: data.name || '', email: data.email, phone: data.phone });
-      addToast({ type: 'success', title: 'Customer Created', description: `Account for ${created.name} successfully initialized.` });
+    const created = await saveCustomer({ name: data.name || '', email: data.email, phone: data.phone });
+    await mutateSWR((key) => typeof key === 'string' && key.startsWith('/api/customers?'));
+    addToast({ type: 'success', title: 'Customer Created', description: `Account for ${created.name} successfully initialized.` });
     } catch (error) {
       addToast({ type: 'error', title: 'Customer Not Created', description: error instanceof Error ? error.message : 'Customer could not be saved.' });
     }

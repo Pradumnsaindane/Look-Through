@@ -31,12 +31,13 @@ export default async function handler(req: Request, res: Response) {
       if (input.id) {
         const [customer] = await db.select().from(customers).where(and(eq(customers.organizationId, organizationId), eq(customers.id, input.id))).limit(1)
         if (!customer) return fail(res, 404, 'NOT_FOUND', 'Customer not found.')
-        const [customerDeals, customerInvoices, customerActivity] = await Promise.all([
+        const [customerDeals, customerInvoices, customerContacts, customerActivity] = await Promise.all([
           db.select().from(deals).where(and(eq(deals.organizationId, organizationId), eq(deals.customerId, input.id))).orderBy(desc(deals.updatedAt)),
           db.select().from(invoices).where(and(eq(invoices.organizationId, organizationId), eq(invoices.customerId, input.id))).orderBy(desc(invoices.updatedAt)),
+          db.execute(sql`select id, name, email, phone, is_primary, created_at from customer_contacts where organization_id = ${organizationId} and customer_id = ${input.id} order by is_primary desc, name asc`),
           db.execute(sql`select id, action, entity_type, entity_id, created_at from activities where organization_id = ${organizationId} and entity_id = ${input.id} order by created_at desc limit 50`),
         ])
-        return res.status(200).json({ ok: true, data: { customer, deals: customerDeals, invoices: customerInvoices, activity: customerActivity.rows } })
+        return res.status(200).json({ ok: true, data: { customer, deals: customerDeals, invoices: customerInvoices, contacts: customerContacts.rows, activity: customerActivity.rows } })
       }
       const page = input.page || 1, pageSize = input.pageSize || 20
       const filters = [eq(customers.organizationId, organizationId)]
