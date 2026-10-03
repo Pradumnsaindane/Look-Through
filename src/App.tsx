@@ -78,7 +78,7 @@ export function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  if (path === '/intro') return <IntroPage />;
+  if (path === '/' || path === '/intro') return <IntroPage />;
 
   return <div className="ledger-shell flex h-screen overflow-hidden antialiased">
     <Sidebar />
