@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBusiness } from './context/BusinessContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
@@ -18,6 +18,8 @@ import { AlertsView } from './components/alerts/AlertsView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { RequireAuthentication } from './components/auth/RequireAuthentication';
+import { ProductStory } from './components/dashboard/ProductStory';
+import { Moon, Sun } from 'lucide-react';
 const MobileNavigation: React.FC = () => {
   const { setActiveTab } = useBusiness();
   const tabs = [{ id: 'overview' as const, label: 'Overview' }, { id: 'today' as const, label: 'Today' }, { id: 'customers' as const, label: 'Customers' }, { id: 'work' as const, label: 'Work' }, { id: 'settings' as const, label: 'More' }];
@@ -46,7 +48,38 @@ const MainContent: React.FC = () => {
   </main>;
 };
 
+const IntroPage: React.FC = () => {
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  const toggleTheme = () => {
+    setDark((value) => {
+      const next = !value;
+      document.documentElement.classList.toggle('dark', next);
+      document.documentElement.style.colorScheme = next ? 'dark' : 'light';
+      return next;
+    });
+  };
+
+  return <div className="min-h-screen bg-[var(--surface)] text-[var(--ink)]">
+    <header className="fixed inset-x-0 top-0 z-20 flex items-center justify-between border-b border-[var(--hairline)] bg-[var(--surface)]/90 px-6 py-4 backdrop-blur md:px-10">
+      <a href="/intro" className="ledger-mono text-xs tracking-[0.18em]">LOOK THROUGH</a>
+      <button onClick={toggleTheme} aria-label={`Switch to ${dark ? 'light' : 'dark'} mode`} className="ledger-button px-2.5">{dark ? <Sun className="size-4" /> : <Moon className="size-4" />}</button>
+    </header>
+    <ProductStory />
+  </div>;
+};
+
 export function App() {
+  const [path, setPath] = useState(() => window.location.pathname);
+
+  useEffect(() => {
+    const onPopState = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  if (path === '/intro') return <IntroPage />;
+
   return <div className="ledger-shell flex h-screen overflow-hidden antialiased">
     <Sidebar />
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
