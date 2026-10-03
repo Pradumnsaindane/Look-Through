@@ -39,6 +39,11 @@
 @media (prefers-reduced-motion: reduce) { .story-product-surface { transform: none !important; } html { scroll-behavior: auto; } }
 @media (max-width: 760px) { .product-story { margin-inline: -24px; }.story-hero, .story-convergence, .story-audience, .story-module-intro, .story-connected, .story-advantage, .story-ai, .story-final { padding-inline: 24px; }.story-hero { min-height: 680px; }.story-hero h1, .story-convergence h2, .story-module-intro h2, .story-connected h2, .story-ai h2, .story-final h2 { font-size: 3.4rem; }.signal-field { height: 350px; }.signal { font-size: .65rem; }.signal-core { width: 112px; height: 112px; font-size: .56rem; }.audience-row { grid-template-columns: 1fr; gap: 9px; }.story-module { grid-template-columns: 1fr; min-height: auto; gap: 40px; padding: 80px 24px; }.story-product-surface, .story-module:nth-child(even) .story-product-surface { transform: none; min-height: 380px; }.surface-heading { margin-top: 50px; }.surface-heading strong { font-size: 1.55rem; }.story-advantage { grid-template-columns: 1fr; gap: 60px; }.ai-flow { grid-template-columns: 1fr; }.ai-step { min-height: 100px; border-right: 0; border-bottom: 1px solid var(--story-line); }.ai-step:last-child { border-bottom: 0; }.connected-flow { gap: 8px; }.connected-flow svg { transform: rotate(90deg); }.story-final-actions { flex-direction: column; align-items: center; } }
 
+.look-through-mark { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); }
+.look-through-mark svg { display: block; width: 58px; height: auto; overflow: visible; }
+.look-through-mark circle, .look-through-mark path { fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.look-through-wordmark { font-family: var(--font-mono, ui-monospace, monospace); font-size: .7rem; letter-spacing: .16em; white-space: nowrap; }
+
 /* Product Story theme parity: inherit the active Look Through shell tokens. */
 .product-story {
   --story-ink: var(--ink);

@@ -3,6 +3,7 @@ import { LayoutDashboard, Zap, Users, IndianRupee, CheckSquare, BarChart3, Spark
 import { authClient } from '../../auth/neonAuthClient';
 import { useBusiness } from '../../context/BusinessContext';
 import { NavigationTab } from '../../types';
+import { LookThroughMark } from '../brand/LookThroughMark';
 
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, alerts, todayItems, invoices } = useBusiness();
@@ -25,7 +26,7 @@ export const Sidebar: React.FC = () => {
   ];
   const groups = [{ label: 'Business', items: nav.slice(0, 5) }, { label: 'Intelligence', items: nav.slice(5, 8) }, { label: 'Workspace', items: nav.slice(8) }];
   return <aside className="ledger-sidebar flex w-[216px] shrink-0 flex-col border-r select-none">
-    <div className="flex h-16 items-center border-b border-inherit px-5"><img src="/look-through-logo.png" alt="Look Through logo" width="116" height="42" className="h-[42px] w-auto object-contain object-left" /></div>
+    <div className="flex h-16 items-center border-b border-inherit px-5"><LookThroughMark showWordmark /></div>
     <nav className="flex-1 px-3 py-4">
       {groups.map(group => <div key={group.label} className="mb-5"><div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[.08em] ledger-faint">{group.label}</div>{group.items.map(item => { const Icon = item.icon; const active = activeTab === item.id; return <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex w-full items-center gap-2 rounded-[3px] px-2.5 py-2 text-left text-[14px] ${active ? 'ledger-active-nav' : 'ledger-muted hover:bg-[var(--hairline)]'}`}><Icon className="size-4" strokeWidth={1.5} /><span className="flex-1">{item.label}</span>{item.marker && <span className="ledger-mono ledger-marker text-[12px]">{item.marker}</span>}{item.count !== undefined && item.count > 0 && <span className="ledger-mono text-[12px]">{item.count}</span>}</button>; })}</div>)}
     </nav>
