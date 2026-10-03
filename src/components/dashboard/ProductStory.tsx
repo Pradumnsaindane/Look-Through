@@ -1,7 +1,5 @@
 import React from 'react';
 import { ArrowDown, ArrowRight, BrainCircuit, Check, CircleDollarSign, PlugZap, ShieldCheck, Sparkles, Users, Workflow } from 'lucide-react';
-import { useBusiness } from '../../context/BusinessContext';
-
 type Module = {
   eyebrow: string;
   title: string;
@@ -24,7 +22,11 @@ const modules: Module[] = [
 const signalLabels = ['Customer', 'Invoice', 'Task', 'Transaction', 'Alert', 'Calendar', 'Analytics'];
 
 export const ProductStory: React.FC = () => {
-  const { setActiveTab } = useBusiness();
+  const enterDashboard = () => {
+    window.history.pushState({}, '', '/dashboard');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return <section className="product-story" aria-label="Discover Look Through">
     <div className="story-hero">
       <div className="story-kicker"><span className="story-pulse" /> Look Through / Overview</div>
@@ -71,7 +73,7 @@ export const ProductStory: React.FC = () => {
 
     <div className="story-ai"><div className="story-section-label">Intelligence on top of context</div><h2>From business data<br /><span>to next action.</span></h2><div className="ai-flow">{['Business data', 'Context', 'AI intelligence', 'Insight', 'Recommended action'].map((item, index) => <div className="ai-step" key={item}><span>0{index + 1}</span><strong>{item}</strong>{index < 4 && <ArrowRight aria-hidden="true" />}</div>)}</div><p className="ai-example">“3 invoices need attention.”<br /><span>AI reads, understands, suggests and prepares.</span></p></div>
 
-    <div className="story-final"><div className="story-final-mark"><Users aria-hidden="true" /></div><div className="story-section-label">Your operating view</div><h2>Now, look through<br /><em>your business.</em></h2><p>Everything connected. Nothing hidden.</p><div className="story-final-actions"><button className="story-primary" onClick={() => setActiveTab('customers')}>Explore Look Through <ArrowRight aria-hidden="true" /></button><button className="story-secondary" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Go to Dashboard</button></div></div>
+    <div className="story-final"><div className="story-final-mark"><Users aria-hidden="true" /></div><div className="story-section-label">Your operating view</div><h2>Now, look through<br /><em>your business.</em></h2><p>Everything connected. Nothing hidden.</p><div className="story-final-actions"><button className="story-primary" onClick={enterDashboard}>Enter Dashboard <ArrowRight aria-hidden="true" /></button><button className="story-secondary" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top</button></div></div>
   </section>;
 };
 
