@@ -1,16 +1,32 @@
 import React from 'react';
 import { ArrowUpRight, RefreshCw } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
-import { useDashboardData } from '../../dashboard/dashboardApi';
+import { DashboardRequestError, useDashboardData } from '../../dashboard/dashboardApi';
 const money = (minor: string | number) => `Rs ${(Number(minor) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+
+const DashboardState: React.FC<{ title: string; body: string; onRetry?: () => void }> = ({ title, body, onRetry }) => (
+  <div className="ledger-entrance pb-12">
+    <div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-4 px-6 text-center">
+      <p className="font-semibold">{title}</p>
+      <p className="max-w-md text-sm ledger-muted">{body}</p>
+      {onRetry && <button className="ledger-button" onClick={onRetry}><RefreshCw className="mr-2 inline size-3" />Retry</button>}
+    </div>
+  </div>
+);
 
 export const DashboardView: React.FC = () => {
   const { setActiveTab } = useBusiness();
-  const { data, error, isLoading, mutate } = useDashboardData();
+  const { data, error, isLoading, mutate, sessionState } = useDashboardData();
 
-  if (isLoading) return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 items-center justify-center ledger-muted">Loading live business data…</div></div>;
-  if (error) return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-4 text-center"><p className="font-semibold">Dashboard data is unavailable</p><p className="max-w-md text-sm ledger-muted">{error.message}</p><button className="ledger-button" onClick={() => mutate()}><RefreshCw className="mr-2 inline size-3" />Retry</button></div></div>;
-  if (!data) return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-3 px-6 text-center"><p className="text-xs font-semibold uppercase tracking-[0.16em] ledger-faint">Guest mode</p><h1 className="text-2xl font-semibold tracking-tight">Explore your business workspace</h1><p className="max-w-lg text-sm leading-6 ledger-muted">You can explore the dashboard and Today without an account. Business data, saved changes, and organization tools become available after you log in.</p></div></div>;
+  if (sessionState === 'initializing') return <DashboardState title="Checking your session" body="Restoring your authenticated workspace before loading business data." />;
+  if (sessionState === 'guest') return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-3 px-6 text-center"><p className="text-xs font-semibold uppercase tracking-[0.16em] ledger-faint">Guest mode</p><h1 className="text-2xl font-semibold tracking-tight">Explore your business workspace</h1><p className="max-w-lg text-sm leading-6 ledger-muted">You can explore the dashboard and Today without an account. Business data, saved changes, and organization tools become available after you log in.</p></div></div>;
+  if (isLoading) return <DashboardState title="Loading live business data" body="Fetching the workspace data authorized for your account." />;
+  if (error) {
+    const requestError = error instanceof DashboardRequestError ? error : undefined;
+    if (requestError?.status === 403) return <DashboardState title="Organization access needed" body={requestError.message} />;
+    return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-4 text-center"><p className="font-semibold">Dashboard data is unavailable</p><p className="max-w-md text-sm ledger-muted">{error.message}</p><button className="ledger-button" onClick={() => mutate()}><RefreshCw className="mr-2 inline size-3" />Retry</button></div></div>;
+  }
+  if (!data) return <DashboardState title="Dashboard data is unavailable" body="No authorized workspace data was returned. Try again to reload it." onRetry={() => mutate()} />;
 
   const revenue = money(data.financial.revenue_minor);
   const overdue = money(data.counts.overdue_minor);
