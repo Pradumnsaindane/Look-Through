@@ -40,7 +40,7 @@ The product story at `/` and `/intro` is publicly reachable and renders successf
 - `npm run typecheck` — **PASS** (baseline output recorded).
 - `npm run lint` — **PASS with warnings**; warnings are actionable unused-code and React lint findings.
 - `npm run test` — **PASS** in the existing authorization integration suite when run with its test database mocks (six scenarios).
-- `npm run build` — must be rerun after this change and recorded with deployment verification.
+- `npm run build` — **PASS** after the routing change; Vite emitted only the existing large-chunk warning. Deployment verification remains pending.
 - Browser: deployed `/` — **PASS**, title `Business OS — Intelligent Operational Command Center`, no blocking render error observed.
 - Browser: deployed `/dashboard` — **FAIL before fix**, `404 NOT_FOUND`; recheck after deployment.
 
