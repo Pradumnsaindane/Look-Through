@@ -107,6 +107,12 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
+### Authentication configuration
+
+Email sign-in uses Neon Auth. Set `VITE_NEON_AUTH_URL` to the Neon Auth endpoint in the build environment so the browser can create its auth client. Set `NEON_AUTH_BASE_URL` to the same endpoint for server-side session verification. Add both variables to the Vercel project for each environment you use (Production, Preview, and Development), then redeploy so the client bundle includes the URL. Do not put `BETTER_AUTH_SECRET` in a `VITE_` variable; it must remain server-only.
+
+If `VITE_NEON_AUTH_URL` is absent, the app shows a configuration message instead of a nonfunctional sign-in form. After successful sign-in or account creation, the app opens `/dashboard`.
+
 ---
 
 ## 📄 License
