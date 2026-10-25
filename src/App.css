@@ -70,6 +70,8 @@
   background: radial-gradient(circle at 76% 40%, color-mix(in srgb, var(--story-accent) 15%, transparent), transparent 28%), radial-gradient(circle at 15% 75%, color-mix(in srgb, var(--marker) 12%, transparent), transparent 25%);
 }
 .product-story .story-primary { background: var(--ink); color: var(--canvas); }
+.story-site .story-primary { background: var(--story-ink); color: var(--story-bg); }
+.story-site .story-secondary { background: transparent; color: var(--story-ink); border-color: var(--story-line); }
 .product-story .story-secondary { background: transparent; color: var(--ink); border-color: var(--story-line); }
 .product-story em,
 .product-story .story-convergence h2 span,
