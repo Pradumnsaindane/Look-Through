@@ -49,7 +49,7 @@ const MainContent: React.FC = () => {
 };
 
 const IntroPage: React.FC = () => {
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const toggleTheme = () => {
     setDark((value) => {
