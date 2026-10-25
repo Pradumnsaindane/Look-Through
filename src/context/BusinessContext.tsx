@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { mutate as mutateSWR } from 'swr';
 import confetti from 'canvas-confetti';
 import { 
@@ -164,7 +164,20 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-  const [dashboardWidgets, setDashboardWidgets] = useState<DashboardWidgetConfig[]>(DEFAULT_DASHBOARD_WIDGETS);
+  const [dashboardWidgets, setDashboardWidgets] = useState<DashboardWidgetConfig[]>(() => {
+    try {
+      const saved = window.localStorage.getItem('look-through.dashboard-widgets');
+      if (!saved) return DEFAULT_DASHBOARD_WIDGETS;
+      const parsed = JSON.parse(saved) as DashboardWidgetConfig[];
+      return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_DASHBOARD_WIDGETS;
+    } catch {
+      return DEFAULT_DASHBOARD_WIDGETS;
+    }
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem('look-through.dashboard-widgets', JSON.stringify(dashboardWidgets));
+  }, [dashboardWidgets]);
 
   const [healthMetrics] = useState<HealthMetric[]>(INITIAL_HEALTH_METRICS);
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);

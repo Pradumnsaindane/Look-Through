@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowUpRight, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpRight, Eye, EyeOff, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
 import { DashboardRequestError, useDashboardData } from '../../dashboard/dashboardApi';
 const money = (minor: string | number) => `Rs ${(Number(minor) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -15,8 +15,11 @@ const DashboardState: React.FC<{ title: string; body: string; onRetry?: () => vo
 );
 
 export const DashboardView: React.FC = () => {
-  const { setActiveTab } = useBusiness();
+  const { setActiveTab, dashboardWidgets, toggleWidgetVisibility, moveWidget, resetDashboardWidgets, addToast } = useBusiness();
   const { data, error, isLoading, mutate, sessionState } = useDashboardData();
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const visible = (id: string) => dashboardWidgets.find(widget => widget.id === id)?.visible !== false;
+  const orderedWidgets = [...dashboardWidgets].sort((a, b) => a.order - b.order);
 
   if (sessionState === 'initializing') return <DashboardState title="Checking your session" body="Restoring your authenticated workspace before loading business data." />;
   if (sessionState === 'guest') return <div className="ledger-entrance pb-12"><div className="ledger-surface flex min-h-72 flex-col items-center justify-center gap-3 px-6 text-center"><p className="text-xs font-semibold uppercase tracking-[0.16em] ledger-faint">Guest mode</p><h1 className="text-2xl font-semibold tracking-tight">Explore your business workspace</h1><p className="max-w-lg text-sm leading-6 ledger-muted">You can explore the dashboard and Today without an account. Business data, saved changes, and organization tools become available after you log in.</p></div></div>;
@@ -40,13 +43,22 @@ export const DashboardView: React.FC = () => {
     ['Expenses', `${money(data.financial.expenses_minor)} this month`, 'Live'],
   ];
   return <div className="ledger-entrance pb-12">
+    <div className="mb-6 flex items-center justify-between gap-4">
+      <div><p className="ledger-mono text-[11px] ledger-muted">PERSONAL WORKSPACE</p><p className="mt-1 text-sm ledger-muted">Your layout is saved on this device.</p></div>
+      <button className="ledger-button" onClick={() => setIsCustomizing(value => !value)} aria-expanded={isCustomizing}><SlidersHorizontal className="mr-2 inline size-3" />{isCustomizing ? 'Done customizing' : 'Customize workspace'}</button>
+    </div>
+    {isCustomizing && <section className="ledger-surface mb-8 p-5" aria-label="Customize workspace">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="font-semibold">Workspace modules</h2><p className="mt-1 text-sm ledger-muted">Choose what appears first when you open Look Through.</p></div><button className="ledger-button" onClick={() => { resetDashboardWidgets(); addToast({ type: 'info', title: 'Workspace reset', description: 'Your default module layout has been restored.' }); }}>Reset defaults</button></div>
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">{orderedWidgets.map((widget, index) => <div key={widget.id} className="flex items-center gap-3 border-b border-[var(--hairline)] py-3"><button className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => toggleWidgetVisibility(widget.id)} aria-label={`${widget.visible ? 'Hide' : 'Show'} ${widget.title}`}><span className="ledger-mono text-[11px] ledger-muted">0{index + 1}</span><span className="truncate text-sm">{widget.title}</span>{widget.visible ? <Eye className="ml-auto size-4 ledger-muted" /> : <EyeOff className="ml-auto size-4 ledger-faint" />}</button><button className="ledger-button px-2" onClick={() => moveWidget(widget.id, 'up')} disabled={index === 0} aria-label={`Move ${widget.title} up`}><ArrowUp className="size-3" /></button><button className="ledger-button px-2" onClick={() => moveWidget(widget.id, 'down')} disabled={index === orderedWidgets.length - 1} aria-label={`Move ${widget.title} down`}><ArrowDown className="size-3" /></button></div>)}</div>
+      <div className="mt-4 flex justify-end"><button className="ledger-button ledger-button-primary" onClick={() => { setIsCustomizing(false); addToast({ type: 'success', title: 'Workspace saved', description: 'Your module visibility and order are ready for next time.' }); }}>Save workspace</button></div>
+    </section>}
     <div className="mb-8 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between"><div><div className="ledger-mono mb-2 text-[12px] ledger-muted">LIVE · POSTGRESQL</div><h1 className="text-[42px] font-semibold leading-[.98] tracking-[-.045em]">Business overview.</h1><p className="mt-1 text-[40px] leading-[1] tracking-[-.045em] ledger-muted">{openTasks} priorities need attention.</p></div><p className="max-w-[330px] pb-1 text-[14px] ledger-muted"><span className="ledger-marker">{overdue} is overdue</span> across {data.counts.overdue_invoices} invoices.</p></div>
-    <div className="ledger-surface mb-10 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr]">
+    {visible('kpis') && <div className="ledger-surface mb-10 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr]">
       <button onClick={() => setActiveTab('finance')} className="border-b border-[var(--hairline)] p-5 text-left md:border-b-0 md:border-r"><div className="ledger-muted">Revenue · current month</div><div className="ledger-mono mt-2 text-[54px] leading-none tracking-[-.06em]">{revenue}</div><div className="mt-3 text-[13px]">From paid invoices</div></button>
       <button onClick={() => setActiveTab('finance')} className="border-b border-[var(--hairline)] p-5 text-left md:border-b-0 md:border-r"><div className="ledger-muted">Cash movement</div><div className="ledger-mono mt-3 text-[34px] leading-none">{cash}</div><div className="mt-4 ledger-muted">Transactions aggregate</div></button>
       <button onClick={() => setActiveTab('customers')} className="border-b border-[var(--hairline)] p-5 text-left md:border-b-0 md:border-r"><div className="ledger-muted">Customers</div><div className="ledger-mono mt-3 text-[34px] leading-none">{data.counts.customers}</div><div className="mt-4 ledger-muted">Active records</div></button>
       <button onClick={() => setActiveTab('finance')} className="bg-[var(--marker-tint)] p-5 text-left text-[var(--ink)]"><div>Overdue</div><div className="ledger-mono mt-3 text-[34px] leading-none">{overdue}</div><div className="mt-4">{data.counts.overdue_invoices} invoices</div></button>
-    </div>
+    </div>}
     <div className="grid gap-14 lg:grid-cols-[1.35fr_1fr]">
       <section className="ledger-rule"><div className="flex items-center justify-between py-3"><h2 className="text-[13px] font-semibold">Needs you</h2><span className="ledger-mono ledger-muted">{openTasks} open</span></div>{data.tasks.slice(0, 4).map((task, index) => <div key={task.id} className="flex items-center gap-4 border-b border-[var(--hairline)] py-4"><span className="ledger-mono ledger-muted">0{index + 1}</span><div className="min-w-0 flex-1"><div className="font-semibold">{task.title}</div><div className="mt-1 text-[13px] ledger-muted">{task.priority} priority · {task.status.replace('_', ' ')}</div></div><button onClick={() => setActiveTab('work')} className="ledger-button shrink-0">Open</button></div>)}{!data.tasks.length && <div className="py-8 text-sm ledger-muted">No open tasks.</div>}</section>
       <div className="flex flex-col gap-7"><section className="ledger-rule"><div className="flex items-center justify-between py-3"><h2 className="text-[13px] font-semibold">Business health</h2><span className="ledger-mono ledger-muted">{health.length} checks</span></div>{health.map(([label, evidence, status]) => <div key={label} className="grid grid-cols-[1fr_1.5fr_1fr] border-b border-[var(--hairline)] py-3"><span className="font-semibold">{label}</span><span className="ledger-muted">{evidence}</span><span>{status === 'Act now' ? <span className="ledger-marker">{status}</span> : status}</span></div>)}</section><section className="ledger-rule"><h2 className="py-3 text-[13px] font-semibold">Recent activity</h2>{data.activity.slice(0, 3).map(event => <div key={event.id} className="grid grid-cols-[80px_1fr] border-b border-[var(--hairline)] py-3"><span className="ledger-mono ledger-muted">{new Date(event.created_at).toLocaleDateString('en-IN')}</span><span>{event.action} {event.entity_type}<ArrowUpRight className="ml-2 inline size-3 ledger-muted" /></span></div>)}{!data.activity.length && <div className="py-4 text-sm ledger-muted">No recent activity.</div>}</section></div>
