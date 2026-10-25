@@ -19,7 +19,6 @@ import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { RequireAuthentication } from './components/auth/RequireAuthentication';
 import { ProductStory } from './components/dashboard/ProductStory';
-import { LookThroughMark } from './components/brand/LookThroughMark';
 import { Moon, Sun } from 'lucide-react';
 const MobileNavigation: React.FC = () => {
   const { setActiveTab } = useBusiness();
@@ -50,7 +49,7 @@ const MainContent: React.FC = () => {
 };
 
 const IntroPage: React.FC = () => {
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const toggleTheme = () => {
     setDark((value) => {
@@ -61,13 +60,7 @@ const IntroPage: React.FC = () => {
     });
   };
 
-  return <div className="min-h-screen bg-[var(--surface)] text-[var(--ink)]">
-    <header className="fixed inset-x-0 top-0 z-20 flex items-center justify-between border-b border-[var(--hairline)] bg-[var(--surface)]/90 px-6 py-4 backdrop-blur md:px-10">
-      <a href="/intro" className="flex items-center" aria-label="Look Through home"><LookThroughMark showWordmark /></a>
-      <button onClick={toggleTheme} aria-label={`Switch to ${dark ? 'light' : 'dark'} mode`} className="ledger-button px-2.5">{dark ? <Sun className="size-4" /> : <Moon className="size-4" />}</button>
-    </header>
-    <ProductStory />
-  </div>;
+  return <ProductStory dark={dark} onThemeToggle={toggleTheme} />;
 };
 
 const NotFoundPage: React.FC = () => (

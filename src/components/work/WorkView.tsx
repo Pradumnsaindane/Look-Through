@@ -17,6 +17,7 @@ import {
 import confetti from 'canvas-confetti';
 import { useBusiness } from '../../context/BusinessContext';
 import { Task } from '../../types';
+import { updatePersistedTask, usePersistedTasks } from './tasksApi';
 
 export const WorkView: React.FC = () => {
   const { 
@@ -28,14 +29,20 @@ export const WorkView: React.FC = () => {
   } = useBusiness();
 
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'critical' | 'high' | 'medium' | 'low'>('all');
+  const persisted = usePersistedTasks();
+  const liveTasks: Task[] = (persisted.data || []).map(task => ({ id: task.id, title: task.title, description: '', priority: task.priority === 'urgent' ? 'critical' : task.priority, status: task.status === 'done' ? 'completed' : task.status, dueDate: task.due_at ? new Date(task.due_at).toLocaleDateString('en-IN') : 'No due date', assignedTo: task.assignee_id || 'Unassigned' } as Task));
+  const displayedTasks = persisted.data ? liveTasks : tasks;
 
-  const filteredTasks = tasks.filter(t => {
+  const filteredTasks = displayedTasks.filter(t => {
     if (priorityFilter === 'all') return true;
     return t.priority === priorityFilter;
   });
 
-  const completedCount = tasks.filter(t => t.status === 'completed').length;
-  const pendingCount = tasks.filter(t => t.status !== 'completed').length;
+  const completedCount = displayedTasks.filter(t => t.status === 'completed').length;
+  const pendingCount = displayedTasks.filter(t => t.status !== 'completed').length;
+
+  if (persisted.error) return <div className="ledger-surface mx-auto max-w-3xl p-8 text-center"><h1 className="text-lg font-semibold">Tasks could not be loaded</h1><p className="mt-2 text-sm ledger-muted">{persisted.error.message}</p><button className="ledger-button mt-4" onClick={() => persisted.mutate()}>Retry</button></div>;
+  if (persisted.isLoading) return <div className="ledger-surface mx-auto max-w-3xl p-8 text-center"><p className="text-sm ledger-muted">Loading authorized tasks…</p></div>;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -134,7 +141,7 @@ export const WorkView: React.FC = () => {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3.5 flex-1">
                   <button
-                    onClick={() => completeTask(task.id)}
+                    onClick={async () => { if (persisted.data) { await updatePersistedTask(task.id, { status: 'done' }); await persisted.mutate(); } else completeTask(task.id); }}
                     className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center border transition-all shrink-0 ${
                       isDone
                         ? 'bg-emerald-500 border-emerald-500 text-white'

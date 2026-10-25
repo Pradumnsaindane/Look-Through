@@ -1,81 +1,56 @@
-import React from 'react';
-import { ArrowDown, ArrowRight, BrainCircuit, Check, CircleDollarSign, PlugZap, ShieldCheck, Sparkles, Users, Workflow } from 'lucide-react';
-type Module = {
-  eyebrow: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  tone: string;
-  metrics: string[];
-  detail: string;
-};
+import React, { useState } from 'react';
+import { ArrowRight, Check, ChevronDown, CircleDollarSign, Command, FileText, Layers3, Moon, Network, Sparkles, Sun, Users, Workflow } from 'lucide-react';
+import { LookThroughMark } from '../brand/LookThroughMark';
 
-const modules: Module[] = [
-  { eyebrow: '01 / Finance', title: 'Understand your money.', description: 'See revenue, expenses, cash, receivables and financial movement in one place.', icon: CircleDollarSign, tone: 'story-coral', metrics: ['Revenue', 'Liquid cash', 'Receivables', 'Net income'], detail: 'Financial Domain & Treasury' },
-  { eyebrow: '02 / Work', title: 'Connect work to outcomes.', description: "Tasks shouldn't exist in isolation. Connect execution to the business results behind it.", icon: Workflow, tone: 'story-lime', metrics: ['Task', 'Customer', 'Deal', 'Invoice → Revenue'], detail: 'Work & Business Outcomes' },
-  { eyebrow: '03 / Alerts', title: 'Know what needs attention.', description: 'Turn business events into understandable, actionable alerts.', icon: Sparkles, tone: 'story-gold', metrics: ['What happened?', 'Why it matters', 'What can I do?'], detail: 'Centralized Business Alert Hub' },
-  { eyebrow: '04 / Analytics', title: 'Understand the business behind the numbers.', description: 'Go beyond reporting with connected performance, sales, financial and customer intelligence.', icon: BrainCircuit, tone: 'story-blue', metrics: ['Customer LTV', 'Gross margin', 'Net retention', 'Sales cycle'], detail: 'Business Performance & Deep Analytics' },
-  { eyebrow: '05 / Integrations', title: 'Bring your business together.', description: 'Connect the tools you already use and create one consistent business context.', icon: PlugZap, tone: 'story-violet', metrics: ['External system', 'Canonical model', 'Business OS'], detail: 'Integration Hub & Canonical Data Architecture' },
-  { eyebrow: '06 / Governance', title: 'Control your business environment.', description: 'Manage organization settings, permissions, security and AI governance from one place.', icon: ShieldCheck, tone: 'story-slate', metrics: ['Organization', 'Security & RBAC', 'AI governance', 'Plan & billing'], detail: 'System Configuration & Governance' },
+type StoryProps = { onThemeToggle?: () => void; dark?: boolean };
+
+const faqs = [
+  ['What does Look Through replace?', 'It gives your team one operating view for customer relationships, money, work, and decisions instead of asking everyone to search across disconnected tools.'],
+  ['Can I start with an empty workspace?', 'Yes. New workspaces begin empty. You can add the records that matter to your business and keep demo context separate from real data.'],
+  ['How does the AI assistant work?', 'The assistant reads authorized business records, explains verified signals, and prepares recommendations for your review. It never silently executes consequential changes.'],
+  ['Do I need an accounting integration?', 'No. You can start by recording supported income, expenses, invoices, and payments directly in Look Through. Integrations are shown only when they are actually configured.'],
+  ['Is my business data isolated?', 'Business records are scoped to the authenticated organization and every protected operation is checked on the server before it runs.'],
 ];
 
-const signalLabels = ['Customer', 'Invoice', 'Task', 'Transaction', 'Alert', 'Calendar', 'Analytics'];
+const modules = [
+  { label: 'Customers', title: 'Relationships with memory.', body: 'Keep every customer, deal, note, and follow-up in the same context.', icon: Users, tone: 'story-card-lilac' },
+  { label: 'Finance', title: 'Money you can explain.', body: 'Track cash movement, receivables, expenses, and invoices without losing the story behind the number.', icon: CircleDollarSign, tone: 'story-card-blue' },
+  { label: 'Work', title: 'Execution tied to outcomes.', body: 'Turn priorities into tasks, connect them to customers, and see what is moving or stuck.', icon: Workflow, tone: 'story-card-peach' },
+];
 
-export const ProductStory: React.FC = () => {
-  const enterDashboard = () => {
-    window.history.pushState({}, '', '/dashboard');
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
+export const ProductStory: React.FC<StoryProps> = ({ onThemeToggle, dark }) => {
+  const [openFaq, setOpenFaq] = useState(0);
+  const enterDashboard = () => { window.history.pushState({}, '', '/dashboard'); window.dispatchEvent(new PopStateEvent('popstate')); };
+  const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
-  return <section className="product-story" aria-label="Discover Look Through">
-    <div className="story-hero">
-      <div className="story-kicker"><span className="story-pulse" /> Look Through / Overview</div>
-      <h1>See what matters.<br /><em>Act with clarity.</em></h1>
-      <p>Look Through brings your business data, work and intelligence into one operating view.</p>
-      <button className="story-primary" onClick={() => document.getElementById('story-modules')?.scrollIntoView({ behavior: 'smooth' })}>Explore your business <ArrowDown aria-hidden="true" /></button>
-      <div className="story-scroll-cue"><ArrowDown aria-hidden="true" /> Scroll to explore</div>
-    </div>
+  return <div className="story-site">
+    <header className="story-nav"><a href="/intro" aria-label="Look Through home"><LookThroughMark showWordmark /></a><nav className="story-nav-links" aria-label="Primary navigation"><button onClick={() => jump('features')}>Features</button><button onClick={() => jump('how-it-works')}>How it works</button><button onClick={() => jump('proof')}>Customers</button><button onClick={() => jump('pricing')}>Pricing</button><button onClick={() => jump('faq')}>FAQ</button></nav><div className="story-nav-actions"><button className="story-icon-button" onClick={onThemeToggle} aria-label={`Switch to ${dark ? 'light' : 'dark'} mode`}>{dark ? <Sun size={16} /> : <Moon size={16} />}</button><button className="story-outline-button" onClick={enterDashboard}>Open workspace</button></div></header>
 
-    <div className="story-convergence">
-      <div className="story-section-label">Look Through</div>
-      <h2>Your business.<br /><span>One operating view.</span></h2>
-      <div className="signal-field" aria-label="Connected business signals">
-        {signalLabels.map((signal, index) => <span key={signal} className={`signal signal-${index + 1}`}>{signal}</span>)}
-        <div className="signal-core"><span className="story-pulse" />LOOK<br />THROUGH</div>
-      </div>
-      <p className="story-center-copy">Everything connected.</p>
-    </div>
+    <main>
+      <section className="story-hero-v2">
+        <div className="story-kicker"><span className="story-pulse" /> LOOK THROUGH / BUSINESS OS</div>
+        <h1>Your business,<br /><em>in one view.</em></h1>
+        <p>Look Through connects customers, money, work, and intelligence so you can see what matters and act before it becomes a problem.</p>
+        <div className="story-hero-actions"><button className="story-primary" onClick={enterDashboard}>Start running your business <ArrowRight size={16} /></button><button className="story-secondary" onClick={() => jump('how-it-works')}>Explore the live demo <Command size={15} /></button></div>
+        <div className="story-hero-note"><span>Illustrative workspace preview</span><span>Live data appears after sign in</span></div>
+        <div className="story-command-preview"><div className="preview-window-bar"><span /><span /><span /><b>Look Through / Overview</b><i>● LIVE CONTEXT</i></div><div className="preview-window-body"><aside><strong><span className="preview-logo">=</span> Look Through</strong><small>YOUR BUSINESS</small>{['Overview','Today','Customers','Finance','Work'].map((x, i) => <div key={x} className={i === 0 ? 'preview-nav-active' : ''}>{i === 0 ? <Network size={14} /> : <Layers3 size={14} />}{x}</div>)}</aside><div className="preview-main"><div className="preview-main-head"><div><small>MONDAY / OCTOBER 25</small><h3>Business overview.</h3></div><span className="preview-avatar">LT</span></div><div className="preview-stat-row"><div><small>REVENUE</small><strong>Rs 84,240</strong><em>+12.4% this month</em></div><div><small>OPEN TASKS</small><strong>08</strong><em>3 need attention</em></div><div><small>RECEIVABLES</small><strong>Rs 12,800</strong><em className="preview-warn">2 overdue</em></div></div><div className="preview-lower"><div className="preview-chart"><small>CASH MOVEMENT</small><div className="chart-bars">{[35,52,42,68,56,78,64,92,72,84].map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}</div></div><div className="preview-actions"><small>NEXT BEST ACTION</small><strong>Follow up on overdue invoices</strong><p>2 invoices are past due. Review the customer context before sending a reminder.</p><button>Review action <ArrowRight size={13} /></button></div></div></div></div></div>
+      </section>
 
-    <div className="story-audience">
-      <div className="story-section-label">Built for the way you work</div>
-      <div className="audience-row"><span>Founders</span><strong>Know what deserves your attention.</strong></div>
-      <div className="audience-row"><span>Small businesses</span><strong>Understand what is happening across your business.</strong></div>
-      <div className="audience-row"><span>Teams</span><strong>Keep customers, work and operations connected.</strong></div>
-      <div className="audience-row"><span>Growing MSMEs</span><strong>Turn scattered information into clear decisions.</strong></div>
-    </div>
+      <section id="how-it-works" className="story-section story-convergence-v2"><div className="story-section-label">The operating view</div><div className="story-split-heading"><h2>Stop stitching the story<br /><em>together yourself.</em></h2><p>Every business signal has context. Look Through brings it forward when you need to make a decision.</p></div><div className="story-graph"><div className="graph-line graph-line-one" /><div className="graph-line graph-line-two" /><div className="graph-core"><span>=</span><strong>LOOK<br />THROUGH</strong></div>{['Customers','Invoices','Tasks','Analytics','AI insight','Activity'].map((x, i) => <div className={`graph-node graph-node-${i}`} key={x}><span>{i === 0 ? <Users /> : i === 1 ? <FileText /> : i === 2 ? <Workflow /> : i === 3 ? <Network /> : <Sparkles />}</span>{x}</div>)}</div><p className="story-center-copy">One context. Fewer blind spots. Better next actions.</p></section>
 
-    <div id="story-modules" className="story-module-intro"><div className="story-section-label">The product, in context</div><h2>Every signal has<br /><span>a next step.</span></h2></div>
-    <div className="story-modules">
-      {modules.map((module) => { const Icon = module.icon; return <article key={module.eyebrow} className={`story-module ${module.tone}`}>
-        <div className="story-module-copy"><div className="story-section-label">{module.eyebrow}</div><h3>{module.title}</h3><p>{module.description}</p></div>
-        <div className="story-product-surface" aria-label={module.detail}>
-          <div className="surface-top"><span className="surface-brand"><span className="story-pulse" /> LOOK THROUGH</span><span className="surface-status">LIVE / DEMO CONTEXT</span></div>
-          <div className="surface-heading"><Icon aria-hidden="true" /><div><span className="surface-label">{module.detail}</span><strong>{module.eyebrow.split(' / ')[1]}</strong></div></div>
-          <div className="surface-metrics">{module.metrics.map((metric, index) => <div className="surface-metric" key={metric}><span>0{index + 1}</span><strong>{metric}</strong><i /></div>)}</div>
-          <div className="surface-footer"><span>CONNECTED CONTEXT</span><ArrowRight aria-hidden="true" /><span>BUSINESS OS</span></div>
-        </div>
-      </article> })}
-    </div>
+      <section id="features" className="story-section story-features"><div className="story-split-heading"><div><div className="story-section-label">The product</div><h2>Built for the moments<br /><em>that need clarity.</em></h2></div><p>Not another dashboard to check. A working surface for understanding what changed, why it matters, and what to do next.</p></div><div className="story-feature-grid">{modules.map(({ label, title, body, icon: Icon, tone }) => <article className={`story-feature-card ${tone}`} key={label}><div className="feature-art"><div className="feature-art-top"><span>{label.toUpperCase()}</span><span>● CONNECTED</span></div><div className="feature-art-center"><Icon size={24} /><strong>{label === 'Finance' ? 'Rs 24,640' : label === 'Customers' ? '42 active' : '12 in motion'}</strong><small>{label === 'Finance' ? 'net movement' : label === 'Customers' ? 'relationships' : 'work items'}</small></div><div className="feature-art-lines"><i /><i /><i /></div></div><div className="story-section-label">{label}</div><h3>{title}</h3><p>{body}</p></article>)}</div></section>
 
-    <div className="story-connected"><div className="story-section-label">The connected system</div><h2>One business.<br /><span>One context.</span></h2><div className="connected-flow">{['Customers', 'Deals', 'Invoices', 'Finance', 'Work', 'Analytics', 'AI', 'Actions'].map((item, index) => <React.Fragment key={item}><div className="flow-node">{item}</div>{index < 7 && <ArrowRight aria-hidden="true" />}</React.Fragment>)}</div><p>See what is happening. Understand why it matters. Know what to do next.</p></div>
+      <section className="story-section story-ai-v2"><div className="story-section-label">Intelligence with guardrails</div><div className="story-split-heading"><h2>AI that knows when<br /><em>to make a suggestion.</em></h2><p>Look Through separates facts, calculated metrics, and recommendations so your team can move quickly without handing over control.</p></div><div className="ai-ladder">{['READ', 'SUGGEST', 'PREPARE', 'APPROVE', 'EXECUTE'].map((x, i) => <div key={x} className={i === 1 ? 'ai-ladder-active' : ''}><span>0{i + 1}</span><strong>{x}</strong>{i < 4 && <ArrowRight size={15} />}</div>)}</div></section>
 
-    <div className="story-advantage"><div className="advantage-column"><div className="story-section-label">Without Look Through</div>{['Scattered information', 'Multiple tools', 'Manual searching', 'Disconnected context', 'Reactive decisions'].map(item => <div className="advantage-item muted" key={item}>{item}</div>)}</div><div className="advantage-column"><div className="story-section-label">With Look Through</div>{['Connected information', 'One operating view', 'Business context', 'Prioritized attention', 'Clear next actions'].map(item => <div className="advantage-item" key={item}><Check aria-hidden="true" />{item}</div>)}</div></div>
+      <section id="proof" className="story-section story-proof"><div className="story-section-label">Evidence over invention</div><h2>Built around your<br /><em>real operating context.</em></h2><div className="story-proof-grid"><article className="story-proof-placeholder"><span>TEAM STORIES</span><h3>Content coming soon</h3><p>We will publish verified customer stories here when they are ready. Until then, explore the workspace with your own business context.</p></article><article className="story-proof-placeholder"><span>MEASURED OUTCOMES</span><h3>Content coming soon</h3><p>No unsupported logos, testimonials, or statistics. Look Through keeps the proof layer honest.</p></article><article className="story-proof-placeholder"><span>DEMO VIDEO</span><h3>Demo video coming soon</h3><p>This space is reserved for a verified walkthrough of the product experience.</p></article></div></section>
 
-    <div className="story-ai"><div className="story-section-label">Intelligence on top of context</div><h2>From business data<br /><span>to next action.</span></h2><div className="ai-flow">{['Business data', 'Context', 'AI intelligence', 'Insight', 'Recommended action'].map((item, index) => <div className="ai-step" key={item}><span>0{index + 1}</span><strong>{item}</strong>{index < 4 && <ArrowRight aria-hidden="true" />}</div>)}</div><p className="ai-example">“3 invoices need attention.”<br /><span>AI reads, understands, suggests and prepares.</span></p></div>
+      <section id="pricing" className="story-section story-pricing"><div className="story-section-label">Transparent when ready</div><h2>Pricing without<br /><em>made-up numbers.</em></h2><p className="story-section-intro">Plans and billing details will be published when the commercial model is connected. Start with the workspace today.</p><div className="story-price-grid"><article className="story-price-card story-price-featured"><h3>Workspace access</h3><p>Explore the current product surface and connect your business context.</p><strong>Content coming soon</strong><button onClick={enterDashboard}>Open workspace</button><span><Check size={14} />Customers, finance, work, and intelligence</span><span><Check size={14} />Guided product walkthrough</span><span><Check size={14} />No billing claim until verified</span></article></div></section>
 
-    <div className="story-final"><div className="story-final-mark"><Users aria-hidden="true" /></div><div className="story-section-label">Your operating view</div><h2>Now, look through<br /><em>your business.</em></h2><p>Everything connected. Nothing hidden.</p><div className="story-final-actions"><button className="story-primary" onClick={enterDashboard}>Enter Dashboard <ArrowRight aria-hidden="true" /></button><button className="story-secondary" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top</button></div></div>
-  </section>;
+      <section id="faq" className="story-section story-faq"><div><div className="story-section-label">Questions, answered</div><h2>Make the next<br /><em>decision easier.</em></h2><p>Everything you need to know before bringing your business context together.</p></div><div className="faq-list">{faqs.map(([question, answer], i) => <div className={`faq-item ${openFaq === i ? 'faq-open' : ''}`} key={question}><button onClick={() => setOpenFaq(openFaq === i ? -1 : i)} aria-expanded={openFaq === i}><strong>{question}</strong><ChevronDown size={17} /></button>{openFaq === i && <p>{answer}</p>}</div>)}</div></section>
+
+      <section className="story-final-v2"><div className="story-section-label">Your operating view</div><h2>See what matters.<br /><em>Act with clarity.</em></h2><p>Start with an empty workspace, or explore the product before you sign in.</p><button className="story-primary" onClick={enterDashboard}>Open Look Through <ArrowRight size={16} /></button></section>
+    </main>
+    <footer className="story-footer"><div><LookThroughMark showWordmark /><p>The operating view for businesses that want to move with context.</p></div><div className="story-footer-links"><div><b>Product</b><button onClick={() => jump('features')}>Features</button><button onClick={() => jump('how-it-works')}>How it works</button><button onClick={() => jump('pricing')}>Pricing</button></div><div><b>Resources</b><button onClick={() => jump('faq')}>FAQ</button><button onClick={enterDashboard}>Open workspace</button><button>Security</button></div></div><small>© 2026 Look Through. Built for clearer decisions.</small></footer>
+  </div>;
 };
-
 export default ProductStory;
-
