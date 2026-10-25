@@ -2,8 +2,8 @@ import useSWR from 'swr'
 import { authClient } from '../auth/neonAuthClient'
 
 export interface DashboardData {
-  financial: { revenue_minor: string; expenses_minor: string; receivables_minor: string; cash_in_minor: string; cash_out_minor: string }
-  counts: { customers: number; overdue_invoices: number; overdue_minor: string; pending_expenses: number }
+  financial: { revenue_minor: string; expenses_minor: string | null; receivables_minor: string; cash_in_minor: string | null; cash_out_minor: string | null }
+  counts: { customers: number; overdue_invoices: number; overdue_minor: string; pending_expenses: number | null; open_tasks: number }
   pipeline: Array<{ stage: string; count: number; amount_minor: string }>
   tasks: Array<{ id: string; title: string; priority: string; status: string; due_at: string | null }>
   insights: Array<{ id: string; title: string; summary: string; severity: string; created_at: string }>

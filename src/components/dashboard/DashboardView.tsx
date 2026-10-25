@@ -40,7 +40,7 @@ export const DashboardView: React.FC = () => {
     ['Cash flow', `${cash} net movement`, 'Live'],
     ['Pipeline', `${data.pipeline.reduce((sum, item) => sum + item.count, 0)} open deals`, 'Live'],
     ['Receivables', `${data.counts.overdue_invoices} overdue`, data.counts.overdue_invoices ? 'Act now' : 'Healthy'],
-    ['Expenses', `${money(data.financial.expenses_minor)} this month`, 'Live'],
+    ['Expenses', data.financial.expenses_minor === null ? 'Unavailable' : `${money(data.financial.expenses_minor)} this month`, data.financial.expenses_minor === null ? 'Not connected' : 'Live'],
   ];
   return <div className="ledger-entrance pb-12">
     <div className="mb-6 flex items-center justify-between gap-4">
