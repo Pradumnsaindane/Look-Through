@@ -181,12 +181,12 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const [healthMetrics] = useState<HealthMetric[]>(INITIAL_HEALTH_METRICS);
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
-  const [deals, setDeals] = useState<Deal[]>(INITIAL_DEALS);
-  const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
+  const [deals, setDeals] = useState<Deal[]>([]);
+ const [invoices, setInvoices] = useState<Invoice[]>([]);
+ const [expenses, setExpenses] = useState<Expense[]>([]);
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [todayItems, setTodayItems] = useState<OperationalTodayItem[]>(INITIAL_TODAY_ITEMS);
-  const [activityEvents, setActivityEvents] = useState<ActivityEvent[]>(INITIAL_ACTIVITY_EVENTS);
+  const [activityEvents, setActivityEvents] = useState<ActivityEvent[]>([]);
   const [aiInsights] = useState<AIInsight[]>(INITIAL_AI_INSIGHTS);
   const [alerts, setAlerts] = useState<AlertItem[]>(INITIAL_ALERTS);
   const [integrations, setIntegrations] = useState<IntegrationService[]>(INITIAL_INTEGRATIONS);

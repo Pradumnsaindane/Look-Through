@@ -55,6 +55,14 @@ export const FinanceView: React.FC = () => {
   const pendingExpenses = expenses.filter(e => e.status === 'pending_approval');
   const overdueInvoices = invoices.filter(i => i.status === 'overdue');
 
+  if (invoices.length === 0 && expenses.length === 0) {
+    return <div className="mx-auto max-w-4xl rounded-2xl border border-dashed border-slate-700 bg-slate-900/70 p-10 text-center">
+      <h1 className="text-2xl font-extrabold text-slate-100">Financial Domain & Treasury</h1>
+      <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">No persisted invoices or expenses are connected to this organization yet. Financial metrics, charts, receivables aging, and approvals remain blank instead of showing sample numbers.</p>
+      <button onClick={() => setIsCreateModalOpen(true)} className="mt-6 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500">Add financial record</button>
+    </div>;
+  }
+
   const handleLaunchAIPaymentSequence = () => {
     openAIActionModal({
       title: 'Dispatch Batch Receivables Recovery Sequence',
