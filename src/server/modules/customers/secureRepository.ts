@@ -1,8 +1,8 @@
 import { and, asc, eq } from 'drizzle-orm'
-import { db } from '../../persistence/drizzle'
-import { customers, type CustomerRow } from '../../persistence/schema'
-import { authorize, assertResourceOwnership } from '../authorization'
-import type { AuthenticatedPrincipal } from '../authentication'
+import { db } from '../../persistence/drizzle.js'
+import { customers, type CustomerRow } from '../../persistence/schema.js'
+import { authorize, assertResourceOwnership } from '../authorization/index.js'
+import type { AuthenticatedPrincipal } from '../authentication/index.js'
 
 export const secureCustomerRepository = {
   async list(principal: AuthenticatedPrincipal, organizationId: string): Promise<CustomerRow[]> {

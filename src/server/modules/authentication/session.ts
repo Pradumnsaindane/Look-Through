@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
-import { db } from '../../persistence/drizzle'
-import { memberships, permissions, rolePermissions, roles } from '../../persistence/schema'
+import { db } from '../../persistence/drizzle.js'
+import { memberships, permissions, rolePermissions, roles } from '../../persistence/schema.js'
 
 export type ProtectedRequest = {
   headers?: Record<string, string | string[] | undefined>

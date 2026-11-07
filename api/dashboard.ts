@@ -2,8 +2,8 @@ import { sql } from 'drizzle-orm'
 
 type VercelRequest = { method?: string; query: Record<string, string | string[] | undefined> }
 type VercelResponse = { status: (code: number) => VercelResponse; json: (body: unknown) => VercelResponse }
-import { db } from '../src/server/persistence/drizzle'
-import { authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session'
+import { db } from '../src/server/persistence/drizzle.js'
+import { authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: { code: 'METHOD_NOT_ALLOWED', message: 'GET required' } })

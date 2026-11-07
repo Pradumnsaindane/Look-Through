@@ -1,6 +1,6 @@
-import { AppError } from '../../../shared/errors/AppError'
-import type { AuthenticatedPrincipal } from '../authentication'
-import { hasPermission, hasResourceScope, isBusinessRuleSatisfied, type PermissionKey } from './policy'
+import { AppError } from '../../../shared/errors/AppError.js'
+import type { AuthenticatedPrincipal } from '../authentication/index.js'
+import { hasPermission, hasResourceScope, isBusinessRuleSatisfied, type PermissionKey } from './policy.js'
 
 export interface AuthorizationRequest {
   principal?: AuthenticatedPrincipal | null

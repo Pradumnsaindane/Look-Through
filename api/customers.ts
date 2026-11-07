@@ -1,7 +1,7 @@
 import { and, desc, eq, ilike, or, sql } from 'drizzle-orm'
-import { db } from '../src/server/persistence/drizzle'
-import { auditLogs, customers, deals, invoices } from '../src/server/persistence/schema'
-import { AuthError, authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session'
+import { db } from '../src/server/persistence/drizzle.js'
+import { auditLogs, customers, deals, invoices } from '../src/server/persistence/schema.js'
+import { AuthError, authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session.js'
 
 type Request = { method?: string; query: Record<string, string | string[] | undefined>; body?: unknown; headers?: Record<string, string | string[] | undefined> }
 type Response = { status: (code: number) => Response; json: (body: unknown) => Response }

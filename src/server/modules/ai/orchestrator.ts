@@ -1,11 +1,11 @@
 import { tool, type ToolSet } from 'ai'
 import { z } from 'zod'
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
-import { db } from '../../persistence/drizzle'
-import { aiActions, aiRuns, auditLogs, customers, deals, invoices, tasks } from '../../persistence/schema'
-import { authorize } from '../authorization'
-import type { AuthenticatedPrincipal } from '../authentication'
-import { AppError } from '../../../shared/errors/AppError'
+import { db } from '../../persistence/drizzle.js'
+import { aiActions, aiRuns, auditLogs, customers, deals, invoices, tasks } from '../../persistence/schema.js'
+import { authorize } from '../authorization/index.js'
+import type { AuthenticatedPrincipal } from '../authentication/index.js'
+import { AppError } from '../../../shared/errors/AppError.js'
 
 export const permissionLevels = ['READ', 'SUGGEST', 'PREPARE', 'APPROVE', 'EXECUTE', 'AUTONOMOUS'] as const
 export type PermissionLevel = (typeof permissionLevels)[number]

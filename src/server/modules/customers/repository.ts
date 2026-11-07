@@ -1,6 +1,6 @@
 import { and, asc, eq } from 'drizzle-orm'
-import { db } from '../../persistence/drizzle'
-import { customers, type CustomerRow } from '../../persistence/schema'
+import { db } from '../../persistence/drizzle.js'
+import { customers, type CustomerRow } from '../../persistence/schema.js'
 
 export interface CustomerRepository {
   list(organizationId: string): Promise<CustomerRow[]>

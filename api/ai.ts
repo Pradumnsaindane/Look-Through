@@ -1,10 +1,10 @@
-import { createAiRun, createBusinessTools, type PermissionLevel } from '../src/server/modules/ai/orchestrator'
-import type { AuthenticatedPrincipal } from '../src/server/modules/authentication'
-import { db } from '../src/server/persistence/drizzle'
-import { aiRuns } from '../src/server/persistence/schema'
+import { createAiRun, createBusinessTools, type PermissionLevel } from '../src/server/modules/ai/orchestrator.js'
+import type { AuthenticatedPrincipal } from '../src/server/modules/authentication/index.js'
+import { db } from '../src/server/persistence/drizzle.js'
+import { aiRuns } from '../src/server/persistence/schema.js'
 import { eq } from 'drizzle-orm'
-import { toAppError } from '../src/shared/errors/AppError'
-import { AuthError, authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session'
+import { toAppError } from '../src/shared/errors/AppError.js'
+import { AuthError, authFailure, requireOrganizationContext, requirePermission } from '../src/server/modules/authentication/session.js'
 
 type Request = { method?: string; body?: unknown; headers?: Record<string, string | string[] | undefined> }
 type Response = { status: (code: number) => Response; json: (body: unknown) => Response }

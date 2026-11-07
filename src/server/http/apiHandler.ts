@@ -1,7 +1,7 @@
-import { AppError, toAppError } from '../../shared/errors/AppError'
-import { getOrCreateRequestId, REQUEST_ID_HEADER } from '../../shared/http/requestContext'
-import type { ApiFailure, ApiResponse, ApiSuccess } from '../../shared/api/types'
-import { logger } from '../logging/logger'
+import { AppError, toAppError } from '../../shared/errors/AppError.js'
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from '../../shared/http/requestContext.js'
+import type { ApiFailure, ApiResponse, ApiSuccess } from '../../shared/api/types.js'
+import { logger } from '../logging/logger.js'
 
 export function success<T>(data: T, requestId: string): ApiSuccess<T> {
   return { ok: true, data, meta: { requestId, timestamp: new Date().toISOString() } }

@@ -1,4 +1,4 @@
-import { AppError } from '../../shared/errors/AppError'
+import { AppError } from '../../shared/errors/AppError.js'
 
 export interface DatabaseClient {
   query<T>(sql: string, parameters?: readonly unknown[]): Promise<T[]>

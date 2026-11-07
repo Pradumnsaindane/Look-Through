@@ -1,4 +1,4 @@
-import type { ModuleContext } from '..'
+import type { ModuleContext } from '../index.js'
 
 export interface AuthenticatedPrincipal { userId: string; organizationId: string; roles: string[]; permissions?: string[] }
 export interface AuthenticationService { authenticate(request: Request): Promise<AuthenticatedPrincipal>; signOut(context: ModuleContext): Promise<void> }
