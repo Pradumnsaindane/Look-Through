@@ -19,6 +19,7 @@ import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { RequireAuthentication } from './components/auth/RequireAuthentication';
 import { ProductStory } from './components/dashboard/ProductStory';
+import BackgroundCubesGridDemo from './components/background-cubes-grid-demo';
 import { Moon, Sun } from 'lucide-react';
 const MobileNavigation: React.FC = () => {
   const { setActiveTab } = useBusiness();
@@ -87,6 +88,7 @@ export function App() {
   }, []);
 
   if (path === '/' || path === '/intro') return <IntroPage />;
+  if (path === '/cubes') return <BackgroundCubesGridDemo />;
   if (path !== '/dashboard') return <NotFoundPage />;
 
   return <div className="ledger-shell flex h-screen overflow-hidden antialiased">
