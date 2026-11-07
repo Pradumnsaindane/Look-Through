@@ -1,0 +1,15 @@
+# Dependencies and build output
+node_modules/
+dist/
+# Secrets and local config (keep .env.example)
+.env
+.env.*
+!.env.example
+# Logs, caches, editor/OS files
+*.log
+.vite/
+.cache/
+.freebuff/
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
