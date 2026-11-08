@@ -46,6 +46,14 @@ export const organizations = pgTable('organizations', {
   ...timestamps,
 })
 
+export const organizationSettings = pgTable('organization_settings', {
+  organizationId: uuid('organization_id').primaryKey(),
+  gstNumber: text('gst_number').notNull().default(''),
+  aiAutonomyLevel: text('ai_autonomy_level').notNull().default('Level 4 (Ask Approval Before Execution)'),
+  reminderThresholdMinor: bigint('reminder_threshold_minor', { mode: 'number' }).notNull().default(5000000),
+  ...timestamps,
+})
+
 export const customers = pgTable('customers', {
   id: uuid('id').defaultRandom().primaryKey(),
   organizationId: uuid('organization_id').notNull(),

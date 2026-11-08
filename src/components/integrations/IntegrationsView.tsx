@@ -1,15 +1,5 @@
 import React from 'react';
-import { 
-  Plug2, 
-  CheckCircle2, 
-  RefreshCw, 
-  ArrowRight, 
-  Layers, 
-  ShieldCheck, 
-  Database, 
-  Server,
-  Zap
-} from 'lucide-react';
+import { CheckCircle2, Layers } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
 
 export const IntegrationsView: React.FC = () => {
@@ -45,9 +35,8 @@ export const IntegrationsView: React.FC = () => {
               Canonical Ingestion & Normalization Pipeline
             </h2>
           </div>
-          <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Live Sync Active
+            <span className="text-[11px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+            Preview connectors
           </span>
         </div>
 
@@ -131,7 +120,7 @@ export const IntegrationsView: React.FC = () => {
                         : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30'
                     }`}
                   >
-                    {isConnected ? 'Disconnect' : 'Connect Service'}
+                      Configure provider
                   </button>
                 </div>
               </div>

@@ -88,9 +88,9 @@ function GlobeMesh({ markers, config, onHover }: { markers: GlobeMarker[]; confi
 }
 
 class GlobeErrorBoundary extends React.Component<{ fallback: React.ReactNode; children: React.ReactNode }, { hasError: boolean }> {
-  state = { hasError: false }
+  override state = { hasError: false }
   static getDerivedStateFromError() { return { hasError: true } }
-  render() { return this.state.hasError ? this.props.fallback : this.props.children }
+  override render() { return this.state.hasError ? this.props.fallback : this.props.children }
 }
 
 function FallbackGlobe({ markers }: { markers: GlobeMarker[] }) {

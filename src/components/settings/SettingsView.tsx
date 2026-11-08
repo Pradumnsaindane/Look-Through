@@ -1,35 +1,45 @@
-import React, { useState } from 'react';
-import { 
-  Building2, 
-  ShieldCheck, 
-  Bot, 
-  Bell, 
-  CreditCard, 
-  Users, 
-  Key, 
-  Check, 
-  Lock, 
-  SlidersHorizontal,
-  FileCheck
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Building2, ShieldCheck, Bot, CreditCard } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
 
 export const SettingsView: React.FC = () => {
   const { addToast } = useBusiness();
   const [activeTab, setActiveTab] = useState<'org' | 'security' | 'ai' | 'billing'>('org');
 
-  const [companyName, setCompanyName] = useState('Apex Global Corp');
-  const [taxId, setTaxId] = useState('GSTIN-27AABCA1234F1Z5');
+  const [companyName, setCompanyName] = useState('');
+  const [taxId, setTaxId] = useState('');
   const [aiAutonomyLevel, setAiAutonomyLevel] = useState('Level 4 (Ask Approval Before Execution)');
-  const [autoReminderThreshold, setAutoReminderThreshold] = useState('₹50,000');
+  const [autoReminderThreshold, setAutoReminderThreshold] = useState('5000000');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch('/api/settings', { credentials: 'include' })
+      .then(async response => {
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload.error?.message || 'Settings could not be loaded.');
+        setCompanyName(payload.data.organizationName);
+        setTaxId(payload.data.gstNumber);
+        setAiAutonomyLevel(payload.data.aiAutonomyLevel);
+        setAutoReminderThreshold(String(payload.data.reminderThresholdMinor));
+      })
+      .catch(error => addToast({ type: 'error', title: 'Settings Unavailable', description: error instanceof Error ? error.message : 'Settings could not be loaded.' }))
+      .finally(() => setIsLoading(false));
+  }, [addToast]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    addToast({
-      type: 'success',
-      title: 'Settings Saved',
-      description: 'Organization parameters and AI guardrail policies updated successfully.',
-    });
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/settings', { method: 'PATCH', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ organizationName: companyName, gstNumber: taxId, aiAutonomyLevel, reminderThresholdMinor: Number(autoReminderThreshold) }) });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error?.message || 'Settings could not be saved.');
+      addToast({ type: 'success', title: 'Settings Saved', description: 'Organization parameters and AI guardrail policies were persisted.' });
+    } catch (error) {
+      addToast({ type: 'error', title: 'Save Failed', description: error instanceof Error ? error.message : 'Settings could not be saved.' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -141,9 +151,10 @@ export const SettingsView: React.FC = () => {
           <div className="pt-4 border-t border-slate-800 flex justify-end">
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 transition-all"
+              disabled={isLoading || isSaving}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs shadow-lg shadow-blue-600/30 transition-all"
             >
-              Save Organization Changes
+              {isSaving ? 'Saving…' : 'Save Organization Changes'}
             </button>
           </div>
         </form>
@@ -177,6 +188,11 @@ export const SettingsView: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Automatic Reminder Threshold (₹)</label>
+              <input type="number" min="0" step="1" value={Number(autoReminderThreshold) / 100} onChange={e => setAutoReminderThreshold(String(Math.round(Number(e.target.value || 0) * 100)))} className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-blue-500" />
+            </div>
+
+            <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">Anomaly Detection Sensitivity</label>
               <select
                 className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-blue-500"
@@ -191,9 +207,10 @@ export const SettingsView: React.FC = () => {
           <div className="pt-4 border-t border-slate-800 flex justify-end">
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 transition-all"
+              disabled={isLoading || isSaving}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs shadow-lg shadow-blue-600/30 transition-all"
             >
-              Update AI Governance Rules
+              {isSaving ? 'Saving…' : 'Update AI Governance Rules'}
             </button>
           </div>
         </form>

@@ -425,22 +425,11 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const toggleIntegration = (integrationId: string) => {
-    setIntegrations(prev => prev.map(int => {
-      if (int.id === integrationId) {
-        const newStatus = int.status === 'connected' ? 'available' : 'connected';
-        return { 
-          ...int, 
-          status: newStatus,
-          lastSynced: newStatus === 'connected' ? 'Just now' : undefined 
-        };
-      }
-      return int;
-    }));
-    const int = integrations.find(i => i.id === integrationId);
+    const integration = integrations.find(item => item.id === integrationId);
     addToast({
       type: 'info',
-      title: 'Integration State Changed',
-      description: `${int?.name} status updated. Sync pipeline active.`,
+      title: 'Connector setup required',
+      description: `${integration?.name ?? 'This connector'} is not configured for this workspace yet.`,
     });
   };
 
