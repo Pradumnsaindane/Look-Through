@@ -63,7 +63,19 @@ button { cursor: pointer; }
 
 @media (max-width: 700px) {
   .ledger-sidebar { display: none; }
-  .ledger-main { padding-bottom: 72px !important; }
+  .ledger-main { padding: 1.25rem 1rem 5.5rem !important; }
+  .dashboard-heading { margin-bottom: 1.5rem; }
+  .dashboard-kpis { margin-bottom: 1.75rem; }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .ledger-sidebar { width: 188px; }
+  .ledger-main { padding-inline: 1.5rem; }
+}
+
+@media (max-width: 420px) {
+  .dashboard-kpis .ledger-mono { font-size: 1.5rem; }
+  .dashboard-kpis > button:first-child .ledger-mono { font-size: 2.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

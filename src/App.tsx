@@ -22,9 +22,9 @@ import { ProductStory } from './components/dashboard/ProductStory';
 import BackgroundCubesGridDemo from './components/background-cubes-grid-demo';
 import { Moon, Sun } from 'lucide-react';
 const MobileNavigation: React.FC = () => {
-  const { setActiveTab } = useBusiness();
+  const { activeTab, setActiveTab } = useBusiness();
   const tabs = [{ id: 'overview' as const, label: 'Overview' }, { id: 'today' as const, label: 'Today' }, { id: 'customers' as const, label: 'Customers' }, { id: 'work' as const, label: 'Work' }, { id: 'settings' as const, label: 'More' }];
-  return <nav className="fixed inset-x-0 bottom-0 z-30 hidden h-14 border-t border-[var(--hairline)] bg-[var(--surface)] px-2 sm:hidden">{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex flex-1 items-center justify-center text-[11px] capitalize ledger-muted">{tab.label}</button>)}</nav>;
+  return <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-30 flex h-14 border-t border-[var(--hairline)] bg-[var(--surface)] px-2 shadow-[0_-8px_24px_rgba(0,0,0,.06)] sm:hidden">{tabs.map(tab => <button type="button" key={tab.id} onClick={() => setActiveTab(tab.id)} aria-current={activeTab === tab.id ? 'page' : undefined} className={`flex flex-1 items-center justify-center rounded-md text-[11px] capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-3px] ${activeTab === tab.id ? 'font-semibold text-[var(--ink)]' : 'ledger-muted'}`}>{tab.label}</button>)}</nav>;
 };
 
 const MainContent: React.FC = () => {
@@ -64,6 +64,21 @@ const IntroPage: React.FC = () => {
   return <ProductStory dark={dark} onThemeToggle={toggleTheme} />;
 };
 
+class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  override state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  override render() {
+    if (this.state.hasError) {
+      return <main className="flex min-h-screen items-center justify-center bg-[var(--surface)] px-6 text-[var(--ink)]"><section className="max-w-md text-center"><p className="ledger-mono text-xs ledger-muted">APPLICATION ERROR</p><h1 className="mt-3 text-2xl font-semibold">This workspace could not render.</h1><p className="mt-3 text-sm leading-6 ledger-muted">Reload the page to retry the workspace shell.</p><button type="button" className="ledger-button ledger-button-primary mt-6" onClick={() => window.location.reload()}>Reload workspace</button></section></main>;
+    }
+    return this.props.children;
+  }
+}
+
 const NotFoundPage: React.FC = () => (
   <main className="flex min-h-screen items-center justify-center bg-[var(--surface)] px-6 text-[var(--ink)]">
     <section className="max-w-md text-center">
@@ -91,7 +106,7 @@ export function App() {
   if (path === '/cubes') return <BackgroundCubesGridDemo />;
   if (path !== '/dashboard') return <NotFoundPage />;
 
-  return <div className="ledger-shell flex h-screen overflow-hidden antialiased">
+  return <AppErrorBoundary><div className="ledger-shell flex h-screen overflow-hidden antialiased">
     <Sidebar />
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <Topbar />
@@ -99,6 +114,6 @@ export function App() {
       <MobileNavigation />
     </div>
     <CommandMenu /><UniversalCreateModal /><AIActionModal /><NotificationDrawer /><ToastContainer />
-  </div>;
+  </div></AppErrorBoundary>;
 }
 export default App;
