@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, CalendarDays, Command, FolderKanban, Layers3, Network, Play, Sparkles, Users } from 'lucide-react';
 
 import { goTo, jumpTo } from './navigation';
+import { Boxes } from '../ui/background-boxes';
 
 type PreviewTab = 'overview' | 'today' | 'meetings' | 'projects' | 'learning';
 
@@ -253,10 +254,8 @@ export const HeroSection: React.FC = () => {
 
   return (
     <section className="lp-hero" id="preview" aria-labelledby="lp-hero-title">
-      <div className="lp-hero-bg" aria-hidden="true">
-        <span className="lp-beam lp-beam-one" />
-        <span className="lp-beam lp-beam-two" />
-        <span className="lp-beam lp-beam-three" />
+      <div className="lp-hero-bg">
+        <Boxes />
       </div>
 
       <div className="lp-hero-inner">

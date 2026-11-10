@@ -117,8 +117,8 @@ export const Card = ({
         <span className="w-1.5 h-1.5 rounded-full bg-[#181A20] ring-1 ring-[#888E99]/50" />
       </div>
 
-      {/* Screen container with dark hardware gasket separation */}
-      <div className="h-full w-full rounded-[15px] sm:rounded-[20px] md:rounded-[25px] overflow-hidden bg-[#0B0C0E] border border-[#20232A]">
+      {/* Screen container with a light hardware gasket separating bezel from display */}
+      <div className="h-full w-full rounded-[15px] sm:rounded-[20px] md:rounded-[25px] overflow-hidden bg-[#FFFFFF] border border-[#C9CFD8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.9)]">
         {children}
       </div>
     </motion.div>

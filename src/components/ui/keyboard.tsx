@@ -479,12 +479,9 @@ export const Keyboard: React.FC<KeyboardProps> = ({ className = '' }) => {
       </div>
 
       {/* ---------- 2. Keyboard Device Presentation ---------- */}
-      <div className="relative mx-auto w-full max-w-4xl">
-        {/* Soft Ambient Blue Shadow Beneath Keyboard */}
-        <div
-          className="pointer-events-none absolute -inset-2 sm:-inset-4 bg-[#4c6fff]/12 rounded-[28px] sm:rounded-[36px] blur-2xl transition-opacity duration-500"
-          aria-hidden="true"
-        />
+      <div className="lt-keyboard relative mx-auto w-full max-w-4xl">
+        {/* Natural ambient shadow with only a hint of blue beneath the hardware */}
+        <div className="lt-keyboard-shadow pointer-events-none absolute" aria-hidden="true" />
 
         {/* Keyboard Hardware Chassis */}
         <motion.div
@@ -493,16 +490,13 @@ export const Keyboard: React.FC<KeyboardProps> = ({ className = '' }) => {
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           style={{ perspective: '1000px' }}
-          className="relative rounded-[20px] sm:rounded-[26px] bg-gradient-to-b from-[#181b22] via-[#121419] to-[#0c0e12] p-2.5 sm:p-4 border border-[#2b303c] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_40px_-8px_rgba(76,111,255,0.16),inset_0_1px_1px_rgba(255,255,255,0.14)]"
+          className="lt-keyboard-body relative p-2.5 sm:p-4"
         >
-          {/* Subtle Top Chassis Chamfer Highlight */}
-          <div
-            className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-br from-white/[0.04] via-transparent to-transparent"
-            aria-hidden="true"
-          />
+          {/* Aluminium chamfer highlight */}
+          <div className="lt-keyboard-sheen pointer-events-none absolute inset-0 rounded-[inherit]" aria-hidden="true" />
 
-          {/* Deep Recessed Switch Plate */}
-          <div className="relative rounded-[14px] sm:rounded-[18px] bg-[#08090d] border border-white/[0.05] p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 shadow-inner">
+          {/* Recessed switch plate */}
+          <div className="lt-keyboard-plate relative p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5">
             {KEYBOARD_ROWS.map((row, rowIndex) => (
               <div key={rowIndex} className="flex gap-0.5 xs:gap-1 sm:gap-1.5 w-full justify-between">
                 {row.map((key) => {
@@ -518,23 +512,21 @@ export const Keyboard: React.FC<KeyboardProps> = ({ className = '' }) => {
                           audioRef.current.playKeySound(true);
                         }
                       }}
-                      className={`relative ${key.width} h-[26px] xs:h-[30px] sm:h-[38px] md:h-[42px] rounded-[4px] xs:rounded-[5px] sm:rounded-[7px] text-[8px] xs:text-[9.5px] sm:text-xs font-mono font-medium transition-all duration-150 flex flex-col items-center justify-center select-none overflow-hidden ${
-                        isPressed
-                          ? 'translate-y-[2px] bg-gradient-to-b from-[#1e273f] to-[#141b2c] border border-[#4c6fff] text-white shadow-[0_0_16px_rgba(76,111,255,0.6),inset_0_0_8px_rgba(76,111,255,0.35)]'
-                          : 'bg-gradient-to-b from-[#191c24] via-[#14161d] to-[#0e1015] border border-[#262b36] border-b-2 border-b-[#0a0c10] text-[#8b91a3] hover:text-white hover:border-[#4c6fff]/40'
+                      className={`lt-key relative ${key.width} h-[26px] xs:h-[30px] sm:h-[38px] md:h-[42px] rounded-[4px] xs:rounded-[5px] sm:rounded-[7px] text-[8px] xs:text-[9.5px] sm:text-xs font-mono font-medium flex flex-col items-center justify-center select-none overflow-hidden ${
+                        isPressed ? 'is-pressed' : ''
                       }`}
                     >
                       {/* Sub-label for dual-symbol keys */}
                       {key.sublabel && !['⌫', '⇥', '⇪', '↵', '⇧', '⌃', '⌥', '⌘'].includes(key.sublabel) && (
-                        <span className="text-[7px] sm:text-[9px] text-[#636877] leading-none mb-0.5 hidden xs:inline">
+                        <span className="lt-key-sub text-[7px] sm:text-[9px] leading-none mb-0.5 hidden xs:inline">
                           {key.sublabel}
                         </span>
                       )}
 
                       {/* Main Key Label with responsive word/symbol fallback */}
                       <span
-                        className={`leading-none truncate ${
-                          key.isSpecial ? 'font-mono tracking-wider text-[7.5px] sm:text-[10px] uppercase text-[#6f7587]' : ''
+                        className={`lt-key-label leading-none truncate ${
+                          key.isSpecial ? 'is-special font-mono tracking-wider text-[7.5px] sm:text-[10px] uppercase' : ''
                         }`}
                       >
                         {key.sublabel && ['⌫', '⇥', '⇪', '↵', '⇧', '⌃', '⌥', '⌘'].includes(key.sublabel) ? (
@@ -546,14 +538,6 @@ export const Keyboard: React.FC<KeyboardProps> = ({ className = '' }) => {
                           key.label
                         )}
                       </span>
-
-                      {/* Subtle Under-Key Blue Lighting when pressed */}
-                      {isPressed && (
-                        <span
-                          className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-[#4c6fff] blur-[1px]"
-                          aria-hidden="true"
-                        />
-                      )}
                     </button>
                   );
                 })}

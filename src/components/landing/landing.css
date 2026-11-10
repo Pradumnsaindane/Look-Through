@@ -70,13 +70,23 @@
 
 /* ---------- hero ---------- */
 .lp-hero { position: relative; padding: clamp(70px, 10vw, 128px) 0 90px; text-align: center; overflow: hidden; }
-.lp-hero-bg { position: absolute; inset: 0; pointer-events: none; }
-.lp-hero-bg::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(color-mix(in srgb, var(--story-ink) 6%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--story-ink) 6%, transparent) 1px, transparent 1px); background-size: 68px 68px; mask-image: radial-gradient(ellipse 85% 65% at 50% 30%, #000 30%, transparent 78%); opacity: .8; }
-.lp-beam { display: none; }
-.lp-beam-one { left: 6%; }
-.lp-beam-two { right: 8%; animation-delay: -4.5s; transform: rotate(-18deg); }
-.lp-beam-three { left: 42%; width: 16%; animation-delay: -2.5s; opacity: .7; }
-@keyframes lp-beam { 0%, 100% { opacity: .25; transform: rotate(18deg) translateX(-14px); } 50% { opacity: .75; transform: rotate(18deg) translateX(14px); } }
+.lp-hero-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+
+/* ---------- hero background: Aceternity animated boxes (adapted) ---------- */
+.lt-boxes { position: absolute; inset: 0; overflow: hidden; --lt-cell: 64px; --lt-box-x: 50%; --lt-box-y: 34%; --lt-box-line: color-mix(in srgb, var(--story-ink) 13%, transparent); --lt-box-accent: #4c6fff; background: radial-gradient(120% 78% at 50% 0%, color-mix(in srgb, var(--lt-box-accent) 7%, transparent), transparent 62%), var(--story-bg); }
+.lt-boxes-plane-wrap { position: absolute; inset: 0; animation: lt-boxes-drift 38s ease-in-out infinite alternate; will-change: transform; }
+.lt-boxes-plane { position: absolute; top: 50%; left: 50%; width: 220vmax; height: 220vmax; transform: translate(-50%, -50%) skewX(-42deg) skewY(12deg) scale(.62); background-image: linear-gradient(var(--lt-box-line) 1px, transparent 1px), linear-gradient(90deg, var(--lt-box-line) 1px, transparent 1px); background-size: var(--lt-cell) var(--lt-cell); }
+.lt-boxes-cell { position: absolute; width: var(--lt-cell); height: var(--lt-cell); margin: -.5px 0 0 -.5px; background: color-mix(in srgb, var(--lt-box-accent) 22%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lt-box-accent) 38%, transparent); will-change: opacity; }
+.lt-boxes-aura { position: absolute; inset: 0; background: radial-gradient(circle 340px at var(--lt-box-x) var(--lt-box-y), color-mix(in srgb, var(--lt-box-accent) 20%, transparent), color-mix(in srgb, var(--lt-box-accent) 5%, transparent) 52%, transparent 74%); opacity: .9; }
+.lt-boxes-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse 68% 54% at 50% 30%, color-mix(in srgb, var(--story-bg) 92%, transparent) 0%, color-mix(in srgb, var(--story-bg) 58%, transparent) 56%, transparent 80%), linear-gradient(to bottom, transparent 62%, var(--story-bg) 100%); }
+@keyframes lt-boxes-drift { from { transform: translate3d(-10px, 6px, 0); } to { transform: translate3d(10px, -6px, 0); } }
+.lt-boxes.is-static .lt-boxes-plane-wrap { animation: none; }
+.lt-boxes.is-static .lt-boxes-aura { opacity: .45; }
+@media (max-width: 700px) {
+  .lt-boxes { --lt-cell: 46px; }
+  .lt-boxes-cell:nth-child(n + 7) { display: none; }
+  .lt-boxes-aura { background: radial-gradient(circle 200px at var(--lt-box-x) var(--lt-box-y), color-mix(in srgb, var(--lt-box-accent) 15%, transparent), transparent 72%); }
+}
 .lp-hero-inner { position: relative; z-index: 1; width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
 .lp-kicker { display: inline-flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid var(--story-line); border-radius: var(--control-radius); background: color-mix(in srgb, var(--story-surface) 70%, transparent); color: var(--story-muted); font: 600 11px/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .lp-kicker i { width: 7px; height: 7px; border-radius: 50%; background: var(--story-accent2); }
@@ -344,9 +354,137 @@
   .lp-lab-tab { padding: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-beam, .lp-kicker i, .lp-transcript i, .lp-bars span { animation: none !important; }
+  .lt-boxes-plane-wrap, .lp-kicker i, .lp-transcript i, .lp-bars span { animation: none !important; }
   .lp-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .lp-beam-path path { stroke-dashoffset: 0 !important; animation: none !important; }
   .lp-beam-path circle { display: none; }
   .lp-ring .lp-ring-fill { animation: none !important; stroke-dashoffset: var(--dash, 60); }
+}
+
+/* ==========================================================================
+   PART B — Illustrative tablet display (independent light theme)
+   The tablet screen never inherits the site dark/light tokens.
+   ========================================================================== */
+.lt-tablet {
+  --t-bg: #ffffff;
+  --t-soft: #f7f8fa;
+  --t-surface: #ffffff;
+  --t-ink: #202124;
+  --t-muted: #626a73;
+  --t-faint: #8a919a;
+  --t-line: #e5e7eb;
+  --t-accent: #4c6fff;
+  --t-positive: #157347;
+  --t-caution: #8a6a00;
+  --t-warn: #b25a13;
+  color-scheme: light;
+  background: var(--t-bg);
+  color: var(--t-ink);
+}
+.lt-tablet-glare { background: linear-gradient(140deg, rgba(76, 111, 255, 0.045), transparent 46%); }
+.lt-tablet .lt-t-header { background: var(--t-surface); border-color: var(--t-line); }
+.lt-tablet .lt-t-footer { background: #fbfcfd; border-color: var(--t-line); color: var(--t-faint); }
+.lt-tablet .lt-t-card { background: var(--t-surface); border: 1px solid var(--t-line); border-radius: 12px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
+.lt-tablet .lt-t-ai { background: var(--t-soft); border: 1px solid var(--t-line); }
+.lt-tablet .lt-t-ai-box { background: var(--t-surface); border: 1px solid var(--t-line); }
+.lt-tablet .lt-t-row { background: var(--t-soft); border: 1px solid var(--t-line); transition: border-color .16s ease, background-color .16s ease; }
+.lt-tablet .lt-t-row:hover { border-color: #d7dbe2; background: #f4f6f8; }
+.lt-tablet .lt-t-nav { background: var(--t-soft); border: 1px solid var(--t-line); }
+.lt-tablet .lt-t-nav-active { background: var(--t-surface); color: var(--t-ink); border: 1px solid var(--t-line); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); }
+.lt-tablet .lt-t-nav-item { color: var(--t-muted); transition: color .16s ease; }
+.lt-tablet .lt-t-nav-item:hover { color: var(--t-ink); }
+.lt-tablet .lt-t-count { background: #eceff3; color: #4a515a; }
+.lt-tablet .lt-t-field { background: var(--t-soft); border: 1px solid var(--t-line); }
+.lt-tablet .lt-t-btn { background: var(--t-surface); border: 1px solid var(--t-line); color: var(--t-ink); box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04); transition: background-color .16s ease, border-color .16s ease, color .16s ease; }
+.lt-tablet .lt-t-btn:hover { background: var(--t-soft); border-color: #d5dae1; }
+.lt-tablet .lt-t-icon { color: var(--t-muted); transition: color .16s ease; }
+.lt-tablet .lt-t-icon:hover { color: var(--t-ink); }
+.lt-tablet .lt-t-avatar { background: var(--t-soft); border: 1px solid var(--t-line); color: var(--t-ink); }
+.lt-tablet .lt-t-badge { background: #f1f3f6; border: 1px solid var(--t-line); color: #4a515a; }
+.lt-tablet .lt-t-badge-critical { background: #fef3f2; border: 1px solid #fcd9d4; color: #b42318; }
+.lt-tablet .lt-t-badge-high { background: #fdf6e7; border: 1px solid #f3e2bd; color: #8a5a00; }
+.lt-tablet .lt-t-badge-decision { background: #eef2ff; border: 1px solid #d6ddfb; color: #3550d6; }
+.lt-tablet .lt-t-live { background: #ecfdf3; border: 1px solid #c7ecd9; color: #0f7a55; }
+.lt-tablet .lt-t-live-dot { background: #10b981; animation: lt-t-pulse 2.6s ease-in-out infinite; }
+.lt-tablet .lt-t-progress { background: #eceff3; border: 1px solid var(--t-line); }
+.lt-tablet .lt-t-progress-fill { background: var(--t-accent); }
+.lt-tablet .lt-t-progress-track { background: #eceff3; }
+.lt-tablet .lt-t-ink { color: var(--t-ink); }
+.lt-tablet .lt-t-muted { color: var(--t-muted); }
+.lt-tablet .lt-t-faint { color: var(--t-faint); }
+.lt-tablet .lt-t-accent { color: var(--t-accent); }
+.lt-tablet .lt-t-positive { color: var(--t-positive); }
+.lt-tablet .lt-t-caution { color: var(--t-caution); }
+.lt-tablet .lt-t-warn { color: var(--t-warn); }
+.lt-tablet .lt-t-accent-dot { background: var(--t-accent); }
+.lt-tablet .lt-t-positive-dot { background: #10b981; }
+.lt-tablet .lt-t-sep { background: var(--t-line); }
+.lt-tablet .lt-t-rule { border-color: var(--t-line); }
+.lt-tablet .lt-t-rule-b { border-color: var(--t-line); }
+@keyframes lt-t-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+/* ==========================================================================
+   PART C — Apple Magic Keyboard-inspired hardware
+   Component-scoped: the keyboard stays white in BOTH site themes.
+   ========================================================================== */
+.lt-keyboard { --kb-ink: #2b2f36; --kb-sub: #6b7280; --kb-line: #e2e5ea; }
+.lt-keyboard-shadow {
+  inset: -10px -16px -26px;
+  border-radius: 32px;
+  background:
+    radial-gradient(58% 60% at 50% 62%, rgba(15, 23, 42, 0.26), transparent 72%),
+    radial-gradient(46% 54% at 50% 100%, rgba(76, 111, 255, 0.12), transparent 72%);
+  filter: blur(16px);
+}
+.lt-keyboard-body {
+  border-radius: 20px;
+  border: 1px solid #cfd4db;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f5f7 46%, #e3e6ea 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.08),
+    0 24px 50px -22px rgba(15, 23, 42, 0.45),
+    0 3px 6px rgba(15, 23, 42, 0.08);
+}
+.lt-keyboard-sheen { background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), transparent 40%, transparent 72%, rgba(15, 23, 42, 0.035)); }
+.lt-keyboard-plate {
+  border-radius: 12px;
+  border: 1px solid #e6e9ed;
+  background: linear-gradient(180deg, #fbfcfd, #f3f5f7);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+.lt-keyboard .lt-key {
+  color: var(--kb-ink);
+  background: linear-gradient(180deg, #ffffff 0%, #fdfdfe 55%, #f1f3f6 100%);
+  border: 1px solid var(--kb-line);
+  border-bottom: 2px solid #c9ced6;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(15, 23, 42, 0.06);
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease, border-color .12s ease;
+}
+.lt-keyboard .lt-key:hover { border-color: #cfd4db; background: #ffffff; }
+.lt-keyboard .lt-key.is-pressed {
+  transform: translateY(2px);
+  background: linear-gradient(180deg, #f3f5f8, #ffffff 72%);
+  border-color: #c9ced6;
+  border-bottom-width: 1px;
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.12), 0 1px 7px rgba(76, 111, 255, 0.18);
+}
+.lt-keyboard .lt-key-sub { color: var(--kb-sub); }
+.lt-keyboard .lt-key-label { color: var(--kb-ink); }
+.lt-keyboard .lt-key-label.is-special { color: #5b6570; }
+@media (min-width: 640px) {
+  .lt-keyboard-body { border-radius: 26px; }
+  .lt-keyboard-plate { border-radius: 18px; }
+}
+@media (max-width: 1100px) {
+  /* Narrower hardware: keep every legend inside its cap. */
+  .lt-keyboard .lt-key-label { font-size: 10.5px; }
+  .lt-keyboard .lt-key-label.is-special { font-size: 6px; letter-spacing: .06em; }
+}
+@media (max-width: 400px) {
+  .lt-keyboard-shadow { filter: blur(12px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lt-keyboard .lt-key { transition: none; }
+  .lt-tablet .lt-t-live-dot { animation: none; }
 }
