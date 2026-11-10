@@ -6,7 +6,7 @@ import { NavigationTab } from '../../types';
 import { LookThroughMark } from '../brand/LookThroughMark';
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, alerts, todayItems, invoices } = useBusiness();
+  const { activeTab, setActiveTab, alerts, todayItems } = useBusiness();
   const session = authClient
     ? (authClient.useSession() as { isPending: boolean; data?: { user?: { name?: string | null; email?: string | null } } | null })
     : { isPending: false, data: null };
@@ -14,7 +14,7 @@ export const Sidebar: React.FC = () => {
   const displayName = user?.name || user?.email?.split('@')[0] || 'Welcome';
   const nav: Array<{ id: NavigationTab; label: string; icon: LucideIcon; count?: number; marker?: string }> = [
     { id: 'overview' as NavigationTab, label: 'Overview', icon: LayoutDashboard },
-    { id: 'today' as NavigationTab, label: 'Today', icon: Zap, count: todayItems.filter(i => !i.isDone).length },
+    { id: 'today' as NavigationTab, label: 'Today', icon: Zap, count: todayItems.length },
     { id: 'customers' as NavigationTab, label: 'Customers', icon: Users },
     { id: 'finance' as NavigationTab, label: 'Finance', icon: IndianRupee },
     { id: 'work' as NavigationTab, label: 'Work', icon: CheckSquare },

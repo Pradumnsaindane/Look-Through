@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { mutate as mutateSWR } from 'swr';
 import { 
   X, 
-  Sparkles, 
   FileText, 
   Users, 
   Briefcase, 
@@ -11,6 +11,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
+import { createPersistedTask } from '../work/tasksApi';
 
 type CreateTab = 'ai' | 'invoice' | 'customer' | 'deal' | 'expense' | 'task';
 
@@ -23,9 +24,19 @@ export const UniversalCreateModal: React.FC = () => {
     createCustomer,
     createDeal,
     createExpense,
-    createTask,
-    executeNaturalLanguageAction
+    executeNaturalLanguageAction,
+    addToast
   } = useBusiness();
+  const [isTaskSubmitting, setIsTaskSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsCreateModalOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCreateModalOpen, setIsCreateModalOpen]);
 
   const [activeTab, setActiveTab] = useState<CreateTab>('ai');
 
@@ -33,34 +44,35 @@ export const UniversalCreateModal: React.FC = () => {
   const [aiPrompt, setAiPrompt] = useState('');
 
   // Invoice Form State
-  const [invoiceCustomerId, setInvoiceCustomerId] = useState(customers[0]?.id || 'cust-1');
-  const [invoiceAmount, setInvoiceAmount] = useState('50000');
-  const [invoiceDueDate, setInvoiceDueDate] = useState('2026-10-31');
-  const [invoiceDescription, setInvoiceDescription] = useState('Enterprise Consulting & System Integration');
+  const [invoiceCustomerId, setInvoiceCustomerId] = useState(customers[0]?.id || '');
+  const [invoiceAmount, setInvoiceAmount] = useState('');
+  const [invoiceDueDate, setInvoiceDueDate] = useState('');
+  const [invoiceDescription, setInvoiceDescription] = useState('');
 
   // Customer Form State
   const [customerName, setCustomerName] = useState('');
-  const [customerCompany, setCustomerCompany] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [customerIndustry, setCustomerIndustry] = useState('Technology & Software');
 
   // Deal Form State
   const [dealTitle, setDealTitle] = useState('');
-  const [dealCustomerId, setDealCustomerId] = useState(customers[0]?.id || 'cust-1');
-  const [dealValue, setDealValue] = useState('250000');
+  const [dealCustomerId, setDealCustomerId] = useState(customers[0]?.id || '');
+  const [dealValue, setDealValue] = useState('');
+  const [dealProbability, setDealProbability] = useState('');
+  const [dealCloseDate, setDealCloseDate] = useState('');
+  const [dealOwner, setDealOwner] = useState('');
   const [dealStage, setDealStage] = useState<'lead' | 'qualified' | 'proposal' | 'negotiation'>('lead');
 
   // Expense Form State
   const [expenseTitle, setExpenseTitle] = useState('');
-  const [expenseAmount, setExpenseAmount] = useState('18500');
+  const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseCategory, setExpenseCategory] = useState<'Marketing' | 'Software & Subscriptions' | 'Operations' | 'Payroll' | 'Travel' | 'Infrastructure'>('Operations');
   const [expenseVendor, setExpenseVendor] = useState('');
 
   // Task Form State
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState<'critical' | 'high' | 'medium' | 'low'>('high');
-  const [taskDueDate, setTaskDueDate] = useState('Today');
+  const [taskDueDate, setTaskDueDate] = useState('');
 
   if (!isCreateModalOpen) return null;
 
@@ -70,12 +82,12 @@ export const UniversalCreateModal: React.FC = () => {
 
     const matched = executeNaturalLanguageAction(aiPrompt);
     if (!matched) {
-      // Fallback: create task with the prompt
-      createTask({
-        title: aiPrompt,
-        priority: 'high',
-        dueDate: 'Today'
+      addToast({
+        type: 'info',
+        title: 'Unsupported quick command',
+        description: 'No changes were made. Use the Task tab to create a saved task.',
       });
+      return;
     }
     setAiPrompt('');
     setIsCreateModalOpen(false);
@@ -84,11 +96,12 @@ export const UniversalCreateModal: React.FC = () => {
   const handleInvoiceSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cust = customers.find(c => c.id === invoiceCustomerId);
-    const amountNum = parseFloat(invoiceAmount) || 50000;
+    const amountNum = Number(invoiceAmount);
+    if (!cust || !Number.isFinite(amountNum) || amountNum <= 0 || !invoiceDescription.trim() || !invoiceDueDate) return;
 
     createInvoice({
       customerId: invoiceCustomerId,
-      customerName: cust?.company || 'Client Co',
+      customerName: cust.company,
       amount: amountNum,
       dueDate: invoiceDueDate,
       items: [{ description: invoiceDescription, quantity: 1, rate: amountNum, total: amountNum }]
@@ -102,10 +115,8 @@ export const UniversalCreateModal: React.FC = () => {
 
     createCustomer({
       name: customerName,
-      company: customerCompany || customerName,
-      email: customerEmail || 'contact@client.com',
-      phone: customerPhone || '+91 98000 00000',
-      industry: customerIndustry
+      email: customerEmail.trim() || undefined,
+      phone: customerPhone.trim() || undefined
     });
     setCustomerName('');
     setIsCreateModalOpen(false);
@@ -115,52 +126,81 @@ export const UniversalCreateModal: React.FC = () => {
     e.preventDefault();
     if (!dealTitle.trim()) return;
     const cust = customers.find(c => c.id === dealCustomerId);
-    const val = parseFloat(dealValue) || 200000;
+    const val = Number(dealValue);
+    const probability = Number(dealProbability);
+    if (!cust || !Number.isFinite(val) || val <= 0 || !Number.isFinite(probability) || probability < 0 || probability > 100) return;
 
     createDeal({
       title: dealTitle,
       customerId: dealCustomerId,
-      customerName: cust?.company || 'Client Co',
+      customerName: cust.company,
       value: val,
-      stage: dealStage
+      stage: dealStage,
+      probability,
+      expectedCloseDate: dealCloseDate,
+      assignedTo: dealOwner,
     });
     setDealTitle('');
+    setDealProbability('');
+    setDealCloseDate('');
+    setDealOwner('');
     setIsCreateModalOpen(false);
   };
 
   const handleExpenseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!expenseTitle.trim()) return;
-    const amt = parseFloat(expenseAmount) || 10000;
+    const amt = Number(expenseAmount);
+    if (!Number.isFinite(amt) || amt <= 0) return;
 
     createExpense({
       title: expenseTitle,
       category: expenseCategory,
       amount: amt,
-      vendor: expenseVendor || 'Approved Vendor'
+      vendor: expenseVendor.trim()
     });
     setExpenseTitle('');
     setIsCreateModalOpen(false);
   };
 
-  const handleTaskSubmit = (e: React.FormEvent) => {
+  const handleTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!taskTitle.trim()) return;
 
-    createTask({
-      title: taskTitle,
-      priority: taskPriority,
-      dueDate: taskDueDate
-    });
-    setTaskTitle('');
-    setIsCreateModalOpen(false);
+    setIsTaskSubmitting(true);
+    try {
+      await createPersistedTask({
+        title: taskTitle.trim(),
+        priority: taskPriority === 'critical' ? 'urgent' : taskPriority,
+        dueAt: taskDueDate || undefined,
+      });
+      await mutateSWR('/api/tasks');
+      addToast({ type: 'success', title: 'Task created', description: 'Saved to your organization workspace.' });
+      setTaskTitle('');
+      setTaskDueDate('');
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Task not created',
+        description: error instanceof Error ? error.message : 'The task could not be saved.',
+      });
+    } finally {
+      setIsTaskSubmitting(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
+    <div
+      className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+      onClick={() => setIsCreateModalOpen(false)}
+    >
       <div 
         className="w-full max-w-xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-modal-title"
       >
         {/* Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
@@ -169,12 +209,13 @@ export const UniversalCreateModal: React.FC = () => {
               +
             </div>
             <div>
-              <h3 className="font-bold text-slate-100 text-base">Universal Create</h3>
-              <p className="text-xs text-slate-400">Add any business entity with deterministic validation</p>
+              <h3 id="create-modal-title" className="font-bold text-slate-100 text-base">Create a record</h3>
+              <p className="text-xs text-slate-400">Customer records use the API; other entries stay in this session.</p>
             </div>
           </div>
           <button
             onClick={() => setIsCreateModalOpen(false)}
+            aria-label="Close create dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -191,8 +232,8 @@ export const UniversalCreateModal: React.FC = () => {
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
-            <span>AI Fast Create</span>
+            <FileText className="w-3.5 h-3.5 text-blue-400" />
+            <span>Quick entry</span>
           </button>
 
           <button
@@ -258,28 +299,31 @@ export const UniversalCreateModal: React.FC = () => {
 
         {/* Content Body */}
         <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-          {/* AI Fast Create */}
+          <p className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200" role="note">
+            Customer and task records use workspace APIs. Invoices, deals, expenses, and quick-entry actions are stored in this browser only; they are not sent to external services.
+          </p>
+          {/* Quick entry */}
           {activeTab === 'ai' && (
             <form onSubmit={handleAISubmit} className="space-y-4">
               <div className="p-4 rounded-xl bg-gradient-to-br from-blue-950/40 via-indigo-950/30 to-purple-950/40 border border-blue-500/20 space-y-2">
                 <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4 text-blue-400" />
-                  <span>Natural Language Quick Execution</span>
+                  <FileText className="w-4 h-4 text-blue-400" />
+                  <span>Quick task entry</span>
                 </div>
                 <p className="text-xs text-slate-300">
-                  Type what you want to create in plain English. The system validates the parameters before saving.
+                  Enter a task using “Task: …”. It is saved in this browser only; this does not use AI or contact anyone.
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Natural Language Command
+                  Task title
                 </label>
                 <textarea
                   rows={3}
                   value={aiPrompt}
                   onChange={e => setAiPrompt(e.target.value)}
-                  placeholder="e.g. 'Create an invoice for Acme for ₹50,000' or 'Follow up with Acme' or 'Add expense ₹18,500 for marketing dinner'..."
+                  placeholder="Task: Prepare the quarterly review"
                   className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder:text-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
@@ -289,10 +333,7 @@ export const UniversalCreateModal: React.FC = () => {
                 <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Examples:</span>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    'Create an invoice for Acme for ₹50,000',
-                    'Follow up with Acme on Q4 renewal',
-                    'Add expense ₹18,500 marketing dinner',
-                    'Task: Prepare executive slides for ABC',
+                    'Task: Prepare executive slides',
                   ].map((example, i) => (
                     <button
                       key={i}
@@ -312,8 +353,8 @@ export const UniversalCreateModal: React.FC = () => {
                   disabled={!aiPrompt.trim()}
                   className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Parse & Execute</span>
+                  <FileText className="w-4 h-4" />
+                  <span>Add local task</span>
                 </button>
               </div>
             </form>
@@ -327,8 +368,10 @@ export const UniversalCreateModal: React.FC = () => {
                 <select
                   value={invoiceCustomerId}
                   onChange={e => setInvoiceCustomerId(e.target.value)}
+                  required
                   className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
                 >
+                  <option value="">Select a saved customer</option>
                   {customers.map(c => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.company})
@@ -342,6 +385,8 @@ export const UniversalCreateModal: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Amount (₹ INR)</label>
                   <input
                     type="number"
+                    min="0.01"
+                    step="0.01"
                     value={invoiceAmount}
                     onChange={e => setInvoiceAmount(e.target.value)}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500 font-mono"
@@ -376,7 +421,7 @@ export const UniversalCreateModal: React.FC = () => {
                   type="submit"
                   className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all"
                 >
-                  Issue Invoice
+                  Add invoice draft
                 </button>
               </div>
             </form>
@@ -385,26 +430,16 @@ export const UniversalCreateModal: React.FC = () => {
           {/* Customer Form */}
           {activeTab === 'customer' && (
             <form onSubmit={handleCustomerSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Customer / Company Name</label>
                   <input
                     type="text"
                     value={customerName}
                     onChange={e => setCustomerName(e.target.value)}
-                    placeholder="e.g. Acme Innovations"
+                    placeholder="Customer or company name"
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
                     required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Brand / Short Name</label>
-                  <input
-                    type="text"
-                    value={customerCompany}
-                    onChange={e => setCustomerCompany(e.target.value)}
-                    placeholder="e.g. Acme"
-                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -430,17 +465,6 @@ export const UniversalCreateModal: React.FC = () => {
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Industry Vertical</label>
-                <input
-                  type="text"
-                  value={customerIndustry}
-                  onChange={e => setCustomerIndustry(e.target.value)}
-                  placeholder="e.g. SaaS, FinTech, Manufacturing"
-                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
-                />
               </div>
 
               <div className="pt-3">
@@ -475,8 +499,10 @@ export const UniversalCreateModal: React.FC = () => {
                   <select
                     value={dealCustomerId}
                     onChange={e => setDealCustomerId(e.target.value)}
+                    required
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
                   >
+                    <option value="">Select a saved customer</option>
                     {customers.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
@@ -486,6 +512,8 @@ export const UniversalCreateModal: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Estimated Value (₹ INR)</label>
                   <input
                     type="number"
+                    min="0.01"
+                    step="0.01"
                     value={dealValue}
                     onChange={e => setDealValue(e.target.value)}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500 font-mono"
@@ -508,12 +536,46 @@ export const UniversalCreateModal: React.FC = () => {
                 </select>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Win probability (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={dealProbability}
+                    onChange={e => setDealProbability(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500 font-mono"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Expected close date (optional)</label>
+                  <input
+                    type="date"
+                    value={dealCloseDate}
+                    onChange={e => setDealCloseDate(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Owner (optional)</label>
+                <input
+                  type="text"
+                  value={dealOwner}
+                  onChange={e => setDealOwner(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
               <div className="pt-3">
                 <button
                   type="submit"
                   className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all"
                 >
-                  Add Deal to Pipeline
+                  Add deal draft
                 </button>
               </div>
             </form>
@@ -554,6 +616,8 @@ export const UniversalCreateModal: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Amount (₹ INR)</label>
                   <input
                     type="number"
+                    min="0.01"
+                    step="0.01"
                     value={expenseAmount}
                     onChange={e => setExpenseAmount(e.target.value)}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500 font-mono"
@@ -563,7 +627,7 @@ export const UniversalCreateModal: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Vendor / Payee</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Vendor / Payee (optional)</label>
                 <input
                   type="text"
                   value={expenseVendor}
@@ -578,7 +642,7 @@ export const UniversalCreateModal: React.FC = () => {
                   type="submit"
                   className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all"
                 >
-                  Submit for Approval
+                  Add expense draft
                 </button>
               </div>
             </form>
@@ -616,10 +680,9 @@ export const UniversalCreateModal: React.FC = () => {
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Due Date</label>
                   <input
-                    type="text"
+                    type="date"
                     value={taskDueDate}
                     onChange={e => setTaskDueDate(e.target.value)}
-                    placeholder="e.g. Today, Tomorrow, Oct 15"
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -628,9 +691,10 @@ export const UniversalCreateModal: React.FC = () => {
               <div className="pt-3">
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all"
+                  disabled={isTaskSubmitting}
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all"
                 >
-                  Create Work Task
+                  {isTaskSubmitting ? 'Saving task…' : 'Create task'}
                 </button>
               </div>
             </form>

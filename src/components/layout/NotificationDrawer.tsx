@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Bell, Check, ArrowRight, CheckCircle2, AlertTriangle, IndianRupee, Sparkles } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, Bell, ArrowRight } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
 
 export const NotificationDrawer: React.FC = () => {
@@ -9,8 +9,16 @@ export const NotificationDrawer: React.FC = () => {
     alerts, 
     markAlertRead,
     setActiveTab,
-    openAIActionModal
   } = useBusiness();
+
+  useEffect(() => {
+    if (!isNotificationsOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsNotificationsOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isNotificationsOpen, setIsNotificationsOpen]);
 
   if (!isNotificationsOpen) return null;
 
@@ -28,16 +36,22 @@ export const NotificationDrawer: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex justify-end animate-in fade-in duration-150">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex justify-end animate-in fade-in duration-150"
+      onClick={() => setIsNotificationsOpen(false)}
+    >
       <div 
         className="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notifications-title"
       >
         {/* Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-blue-400" />
-            <h3 className="font-bold text-slate-100 text-base">Actionable Notifications</h3>
+            <h3 id="notifications-title" className="font-bold text-slate-100 text-base">Notifications</h3>
           </div>
           <button
             onClick={() => setIsNotificationsOpen(false)}
@@ -49,6 +63,11 @@ export const NotificationDrawer: React.FC = () => {
 
         {/* Notifications list */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+          {alerts.length === 0 && (
+            <p className="rounded-lg border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-400">
+              No notifications are available in this session.
+            </p>
+          )}
           {alerts.map(alert => {
             return (
               <div
@@ -107,7 +126,7 @@ export const NotificationDrawer: React.FC = () => {
 
         {/* Footer */}
         <div className="p-3 bg-slate-950 border-t border-slate-800 text-center text-xs text-slate-400">
-          All notifications are synchronized with Business OS real-time stream
+          Notifications are not synced to a live service.
         </div>
       </div>
     </div>

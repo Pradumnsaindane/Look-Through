@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { mutate as mutateSWR } from 'swr';
-import confetti from 'canvas-confetti';
 import { 
   NavigationTab, 
   Customer, 
@@ -45,7 +44,6 @@ interface AIActionModalState {
     targetId?: string;
     amount?: string;
   };
-  onExecute?: () => void;
 }
 
 interface BusinessContextType {
@@ -105,9 +103,7 @@ interface BusinessContextType {
   approveExpense: (expenseId: string) => void;
   rejectExpense: (expenseId: string) => void;
   completeTask: (taskId: string) => void;
-  toggleTodayItemDone: (itemId: string) => void;
   advanceDealStage: (dealId: string, newStage: Deal['stage']) => void;
-  toggleIntegration: (integrationId: string) => void;
   markAlertRead: (alertId: string) => void;
   
   // Creation Handlers
@@ -127,16 +123,85 @@ interface BusinessContextType {
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
 
 const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetConfig[] = [
-  { id: 'kpis', title: 'Key Performance Indicators', visible: true, order: 1 },
-  { id: 'today', title: 'Operational Command Center (Today)', visible: true, order: 2 },
-  { id: 'health', title: 'Business Health Matrix', visible: true, order: 3 },
-  { id: 'ai_insights', title: 'Proactive AI Intelligence', visible: true, order: 4 },
-  { id: 'finance_chart', title: 'Revenue vs Expenses & Runway', visible: true, order: 5 },
-  { id: 'pipeline_summary', title: 'Sales Pipeline Velocity', visible: true, order: 6 },
-  { id: 'activity_stream', title: 'Live Business Event Stream', visible: true, order: 7 },
+  { id: 'kpis', title: 'Key metrics', visible: true, order: 1 },
+  { id: 'today', title: 'Today', visible: true, order: 2 },
+  { id: 'health', title: 'Business health', visible: true, order: 3 },
+  { id: 'ai_insights', title: 'AI insights', visible: true, order: 4 },
+  { id: 'finance_chart', title: 'Finance summary', visible: true, order: 5 },
+  { id: 'pipeline_summary', title: 'Sales pipeline', visible: true, order: 6 },
+  { id: 'activity_stream', title: 'Activity', visible: true, order: 7 },
 ];
 
+const isDashboardWidgetConfig = (value: unknown): value is DashboardWidgetConfig => {
+  if (!value || typeof value !== 'object') return false;
+  const widget = value as Record<string, unknown>;
+  return typeof widget.id === 'string'
+    && typeof widget.title === 'string'
+    && typeof widget.visible === 'boolean'
+    && typeof widget.order === 'number'
+    && Number.isFinite(widget.order);
+};
+
+interface LocalStorageSnapshot {
+  failures: Set<string>;
+  widgets: DashboardWidgetConfig[];
+  deals: Deal[];
+  invoices: Invoice[];
+  expenses: Expense[];
+  tasks: Task[];
+  activities: ActivityEvent[];
+}
+
+function readStoredArray<T>(key: string, failures: Set<string>): T[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const saved = window.localStorage.getItem(key);
+    if (saved === null) return [];
+    const parsed: unknown = JSON.parse(saved);
+    if (Array.isArray(parsed)) return parsed as T[];
+    failures.add(key);
+    console.error(`Unable to read local data for ${key}: expected an array.`);
+  } catch (error) {
+    failures.add(key);
+    console.error(`Unable to read local data for ${key}.`, error);
+  }
+  return [];
+}
+
+function readLocalStorageSnapshot(): LocalStorageSnapshot {
+  const failures = new Set<string>();
+  const widgetsKey = 'look-through.dashboard-widgets';
+  let widgets = DEFAULT_DASHBOARD_WIDGETS;
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = window.localStorage.getItem(widgetsKey);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length && parsed.every(isDashboardWidgetConfig)) widgets = parsed;
+        else {
+          failures.add(widgetsKey);
+          console.error(`Unable to read local data for ${widgetsKey}: invalid widget configuration.`);
+        }
+      }
+    } catch (error) {
+      failures.add(widgetsKey);
+      console.error('Unable to read local dashboard widget settings.', error);
+    }
+  }
+  return {
+    failures,
+    widgets,
+    deals: readStoredArray<Deal>('lookthrough_deals', failures),
+    invoices: readStoredArray<Invoice>('lookthrough_invoices', failures),
+    expenses: readStoredArray<Expense>('lookthrough_expenses', failures),
+    tasks: readStoredArray<Task>('lookthrough_tasks', failures),
+    activities: readStoredArray<ActivityEvent>('lookthrough_activities', failures),
+  };
+}
+
 export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [localStorageSnapshot] = useState(readLocalStorageSnapshot);
+
   const [activeTab, setActiveTab] = useState<NavigationTab>('overview');
   const [customerSubTab, setCustomerSubTab] = useState('customers');
   const [financeSubTab, setFinanceSubTab] = useState('overview');
@@ -151,72 +216,24 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-  const [dashboardWidgets, setDashboardWidgets] = useState<DashboardWidgetConfig[]>(() => {
-    try {
-      const saved = window.localStorage.getItem('look-through.dashboard-widgets');
-      if (!saved) return DEFAULT_DASHBOARD_WIDGETS;
-      const parsed = JSON.parse(saved) as DashboardWidgetConfig[];
-      return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_DASHBOARD_WIDGETS;
-    } catch {
-      return DEFAULT_DASHBOARD_WIDGETS;
-    }
-  });
-
-  useEffect(() => {
-    window.localStorage.setItem('look-through.dashboard-widgets', JSON.stringify(dashboardWidgets));
-  }, [dashboardWidgets]);
+  const [dashboardWidgets, setDashboardWidgets] = useState<DashboardWidgetConfig[]>(localStorageSnapshot.widgets);
 
   const [healthMetrics] = useState<HealthMetric[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [deals, setDeals] = useState<Deal[]>(() => {
-    try {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem('lookthrough_deals') : null;
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    try {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem('lookthrough_invoices') : null;
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    try {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem('lookthrough_expenses') : null;
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    try {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem('lookthrough_tasks') : null;
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [deals, setDeals] = useState<Deal[]>(localStorageSnapshot.deals);
+  const [invoices, setInvoices] = useState<Invoice[]>(localStorageSnapshot.invoices);
+  const [expenses, setExpenses] = useState<Expense[]>(localStorageSnapshot.expenses);
+  const [tasks, setTasks] = useState<Task[]>(localStorageSnapshot.tasks);
   const [todayItems, setTodayItems] = useState<OperationalTodayItem[]>([]);
-  const [activityEvents, setActivityEvents] = useState<ActivityEvent[]>(() => {
-    try {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem('lookthrough_activities') : null;
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [activityEvents, setActivityEvents] = useState<ActivityEvent[]>(localStorageSnapshot.activities);
   const [aiInsights] = useState<AIInsight[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [integrations, setIntegrations] = useState<IntegrationService[]>([
+  const [integrations] = useState<IntegrationService[]>([
     {
       id: 'google',
       name: 'Google Workspace',
       category: 'Email & Cal',
-      description: 'Sync customer meetings, communication logs, and executive availability.',
+      description: 'Planned calendar and email connector. Setup is not available in this workspace.',
       iconName: 'google',
       status: 'available',
       features: ['Calendar sync', 'Email logs'],
@@ -225,7 +242,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id: 'razorpay',
       name: 'Razorpay / UPI Gateway',
       category: 'Payment',
-      description: 'Live reconciliation of payment links, customer settlements, and payouts.',
+      description: 'Planned payment connector. No reconciliation is currently running.',
       iconName: 'razorpay',
       status: 'available',
       features: ['Payment reconciliation', 'Instant settlements'],
@@ -234,7 +251,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id: 'stripe',
       name: 'Stripe International',
       category: 'Payment',
-      description: 'Global SaaS subscription billing and automatic currency conversion.',
+      description: 'Planned international payment connector. Setup is not available.',
       iconName: 'stripe',
       status: 'available',
       features: ['Multi-currency cards', 'Subscription billing'],
@@ -243,44 +260,42 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id: 'zoho',
       name: 'Zoho Books / Tally Prime',
       category: 'Accounting',
-      description: 'Double-entry general ledger synchronization with compliant GST reporting.',
+      description: 'Planned accounting connector. No ledger synchronization is currently running.',
       iconName: 'zoho',
       status: 'available',
       features: ['GST invoice sync', 'Ledger mapping'],
     },
   ]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-  // Local persistence synchronization
+  const persistenceFailureReported = useRef(false);
   useEffect(() => {
     try {
-      localStorage.setItem('lookthrough_deals', JSON.stringify(deals));
-    } catch {}
-  }, [deals]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lookthrough_invoices', JSON.stringify(invoices));
-    } catch {}
-  }, [invoices]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lookthrough_expenses', JSON.stringify(expenses));
-    } catch {}
-  }, [expenses]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lookthrough_tasks', JSON.stringify(tasks));
-    } catch {}
-  }, [tasks]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lookthrough_activities', JSON.stringify(activityEvents));
-    } catch {}
-  }, [activityEvents]);
+      const persist = <T,>(key: string, value: T, initialValue: T) => {
+        if (localStorageSnapshot.failures.has(key)) {
+          if (value === initialValue) return;
+        }
+        localStorage.setItem(key, JSON.stringify(value));
+      };
+      persist('look-through.dashboard-widgets', dashboardWidgets, localStorageSnapshot.widgets);
+      persist('lookthrough_deals', deals, localStorageSnapshot.deals);
+      persist('lookthrough_invoices', invoices, localStorageSnapshot.invoices);
+      persist('lookthrough_expenses', expenses, localStorageSnapshot.expenses);
+      persist('lookthrough_tasks', tasks, localStorageSnapshot.tasks);
+      persist('lookthrough_activities', activityEvents, localStorageSnapshot.activities);
+      persistenceFailureReported.current = false;
+    } catch (error) {
+      if (!persistenceFailureReported.current) {
+        const message = error instanceof Error ? error.message : 'Browser storage is unavailable.';
+        setToasts(prev => [...prev, {
+          id: `${Date.now().toString(36)}-storage`,
+          type: 'error',
+          title: 'Local data was not saved',
+          description: `Some changes may be available only until this page is closed. ${message}`,
+        }]);
+        persistenceFailureReported.current = true;
+      }
+    }
+  }, [dashboardWidgets, deals, invoices, expenses, tasks, activityEvents, localStorageSnapshot]);
 
   // Derive Today Items dynamically from real invoices, tasks, and expenses
   useEffect(() => {
@@ -292,29 +307,27 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         title: `Recover overdue receivables for ${inv.customerName}`,
         subtitle: `Invoice ${inv.invoiceNumber} for ${inv.formattedAmount} is overdue.`,
         category: 'Critical',
-        actionText: 'Send Reminder',
+        actionText: 'Preview reminder',
         actionPayload: {
           type: 'follow_up_customer',
           targetId: inv.id,
           details: `${inv.customerName} · ${inv.formattedAmount}`,
         },
-        isDone: false,
       });
     });
 
-    tasks.filter(t => t.status !== 'completed' && (t.priority === 'critical' || t.priority === 'high')).forEach(t => {
+    tasks.filter(t => t.status !== 'completed' && t.status !== 'cancelled' && (t.priority === 'critical' || t.priority === 'high')).forEach(t => {
       items.push({
         id: `today-task-${t.id}`,
         title: t.title,
         subtitle: t.description || `Priority: ${t.priority}`,
         category: t.priority === 'critical' ? 'Critical' : 'High Priority',
-        actionText: 'Complete Task',
+        actionText: 'Open in Work',
         actionPayload: {
           type: 'custom',
           targetId: t.id,
           details: t.title,
         },
-        isDone: false,
       });
     });
 
@@ -330,7 +343,6 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           targetId: e.id,
           details: `${e.vendor} · ${e.formattedAmount}`,
         },
-        isDone: false,
       });
     });
 
@@ -351,7 +363,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         severity: 'critical',
         whatHappened: `${overdueInvs.length} customer invoices are past due date, delaying cash inflows.`,
         whyItMatters: 'Overdue receivables compress working capital and increase bad debt risk.',
-        whatCanIDo: 'Dispatch payment follow-ups to accelerate collections.',
+        whatCanIDo: 'Review reminder drafts for overdue invoices. No message is sent.',
         actionButtonText: 'Review Receivables',
         timestamp: 'Active',
         isRead: false,
@@ -366,15 +378,15 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         category: 'Operations',
         severity: 'warning',
         whatHappened: 'Operational expenditures submitted by the team require authorization.',
-        whyItMatters: 'Unapproved expenses cannot be processed for vendor settlement.',
-        whatCanIDo: 'Review and approve vendor payments in the Finance tab.',
-        actionButtonText: 'Approve Expenses',
+        whyItMatters: 'This browser-local status is not connected to a payment workflow.',
+        whatCanIDo: 'Review local expense details. No disbursement or notification is sent.',
+        actionButtonText: 'Review Expenses',
         timestamp: 'Active',
         isRead: false,
       });
     }
 
-    const urgentTasks = tasks.filter(t => t.status !== 'completed' && t.priority === 'critical');
+    const urgentTasks = tasks.filter(t => t.status !== 'completed' && t.status !== 'cancelled' && t.priority === 'critical');
     if (urgentTasks.length > 0) {
       derivedAlerts.push({
         id: 'alert-critical-tasks',
@@ -383,7 +395,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         severity: 'warning',
         whatHappened: `Urgent task "${urgentTasks[0].title}" requires completion today.`,
         whyItMatters: 'Critical path tasks block operational delivery and client satisfaction.',
-        whatCanIDo: 'Open the Work tab to execute pending priorities.',
+        whatCanIDo: 'Open Work to review and update local task records.',
         actionButtonText: 'Open Work',
         timestamp: 'Active',
         isRead: false,
@@ -479,7 +491,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id: `act-${Date.now()}`,
       timestamp: new Date().toISOString(),
       timeLabel: 'Just now',
-      title: `Invoice ${inv?.invoiceNumber || invoiceId} marked as paid`,
+      title: `Invoice ${inv?.invoiceNumber || invoiceId} marked as paid locally`,
       entityName: entityTitle,
       amount: inv?.formattedAmount,
       category: 'finance',
@@ -488,17 +500,10 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setActivityEvents(prev => [newEvent, ...prev]);
 
-    confetti({
-      particleCount: 50,
-      spread: 60,
-      origin: { y: 0.8 },
-      colors: ['#10b981', '#3b82f6', '#8b5cf6']
-    });
-
     addToast({
       type: 'success',
-      title: 'Payment Received',
-      description: `Invoice ${inv?.invoiceNumber} was successfully marked as paid. Cash flow updated.`,
+      title: 'Invoice status updated locally',
+      description: `Invoice ${inv?.invoiceNumber} is marked paid in this browser only. No payment was processed.`,
     });
   };
 
@@ -507,36 +512,17 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!inv) return;
 
     openAIActionModal({
-      title: `Dispatch AI Payment Reminder for ${inv.invoiceNumber}`,
+      title: `Review payment reminder draft for ${inv.invoiceNumber}`,
       level: 4,
-      source: 'Receivables Automated Chaser',
-      description: `Invoice for ${inv.formattedAmount} is overdue. AI has composed a polite follow-up with instant UPI & card payment links.`,
+      source: 'Invoice workflow',
+      description: `Review this local invoice record. This preview will not send an email or generate a payment link.`,
       actionDraft: {
-        recipient: `${inv.customerName} Billing Desk <billing@customer.com>`,
         subject: `Payment Reminder: Invoice ${inv.invoiceNumber} for ${inv.formattedAmount}`,
-        content: `Dear Accounts Team,\n\nWe hope you are well. This is a gentle reminder that Invoice ${inv.invoiceNumber} (${inv.formattedAmount}) was due on ${inv.dueDate}.\n\nYou can settle this invoice securely in one click via Razorpay/Stripe: https://pay.businessos.internal/inv/${inv.id}\n\nThank you for your business,\nPradumn Saindane · Apex Global Corp`,
+        content: `Dear Accounts Team,\n\nThis is a reminder that Invoice ${inv.invoiceNumber} (${inv.formattedAmount}) was due on ${inv.dueDate}.\n\nPlease review the invoice details and arrange payment through your usual payment channel.\n\nThank you.`,
         payloadType: 'payment_reminder',
         targetId: inv.id,
         amount: inv.formattedAmount,
       },
-      onExecute: () => {
-        addToast({
-          type: 'success',
-          title: 'Reminder Sent Successfully',
-          description: `AI reminder and payment link delivered to ${inv.customerName}.`,
-        });
-        const newEvent: ActivityEvent = {
-          id: `act-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          timeLabel: 'Just now',
-          title: `Payment reminder dispatched`,
-          entityName: `${inv.customerName} · ${inv.invoiceNumber}`,
-          category: 'finance',
-          iconType: 'invoice',
-          severity: 'normal'
-        };
-        setActivityEvents(prev => [newEvent, ...prev]);
-      }
     });
   };
 
@@ -546,15 +532,15 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     addToast({
       type: 'success',
-      title: 'Expense Approved',
-      description: `${exp?.title} (${exp?.formattedAmount}) has been authorized for disbursement.`,
+      title: 'Expense status updated locally',
+      description: `${exp?.title} is marked approved in this browser only. No disbursement was authorized.`,
     });
 
     const newEvent: ActivityEvent = {
       id: `act-${Date.now()}`,
       timestamp: new Date().toISOString(),
       timeLabel: 'Just now',
-      title: `Expense approved`,
+      title: `Expense marked approved locally`,
       entityName: `${exp?.category} · ${exp?.formattedAmount}`,
       amount: exp?.formattedAmount,
       category: 'finance',
@@ -569,8 +555,8 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const exp = expenses.find(e => e.id === expenseId);
     addToast({
       type: 'warning',
-      title: 'Expense Rejected',
-      description: `${exp?.title} was returned to requester for cost revision.`,
+      title: 'Expense status updated locally',
+      description: `${exp?.title} is marked rejected in this browser only. No requester was notified.`,
     });
   };
 
@@ -579,43 +565,30 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const task = tasks.find(t => t.id === taskId);
     addToast({
       type: 'success',
-      title: 'Task Completed',
-      description: `"${task?.title}" marked done. Business outcome updated.`,
+      title: 'Task status updated locally',
+      description: `"${task?.title}" is marked done in this browser only.`,
     });
-  };
-
-  const toggleTodayItemDone = (itemId: string) => {
-    setTodayItems(prev => prev.map(item => {
-      if (item.id === itemId) {
-        const nextDone = !item.isDone;
-        if (nextDone) {
-          confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
-        }
-        return { ...item, isDone: nextDone };
-      }
-      return item;
-    }));
   };
 
   const advanceDealStage = (dealId: string, newStage: Deal['stage']) => {
     setDeals(prev => prev.map(d => {
       if (d.id === dealId) {
-        return { ...d, stage: newStage, lastContactDaysAgo: 0, isStale: false };
+        return { ...d, stage: newStage };
       }
       return d;
     }));
     const deal = deals.find(d => d.id === dealId);
     addToast({
       type: 'info',
-      title: 'Pipeline Updated',
-      description: `Deal "${deal?.title}" moved to ${newStage.toUpperCase()}.`,
+      title: 'Deal stage updated locally',
+      description: `"${deal?.title}" moved to ${newStage.toUpperCase()} in this browser only.`,
     });
 
     const newEvent: ActivityEvent = {
       id: `act-${Date.now()}`,
       timestamp: new Date().toISOString(),
       timeLabel: 'Just now',
-      title: `Deal moved to ${newStage}`,
+      title: `Deal moved to ${newStage} locally`,
       entityName: `${deal?.customerName} · ${deal?.formattedValue}`,
       amount: deal?.formattedValue,
       category: 'sales',
@@ -623,26 +596,6 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       severity: newStage === 'won' ? 'success' : 'normal'
     };
     setActivityEvents(prev => [newEvent, ...prev]);
-  };
-
-  const toggleIntegration = (integrationId: string) => {
-    setIntegrations(prev => prev.map(int => {
-      if (int.id === integrationId) {
-        const newStatus = int.status === 'connected' ? 'available' : 'connected';
-        return { 
-          ...int, 
-          status: newStatus,
-          lastSynced: newStatus === 'connected' ? 'Just now' : undefined 
-        };
-      }
-      return int;
-    }));
-    const int = integrations.find(i => i.id === integrationId);
-    addToast({
-      type: 'info',
-      title: 'Integration State Changed',
-      description: `${int?.name} status updated. Sync pipeline active.`,
-    });
   };
 
   const markAlertRead = (alertId: string) => {
@@ -661,34 +614,39 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const createInvoice = (data: Partial<Invoice>) => {
-    const amountVal = data.amount || 50000;
+    const customerName = data.customerName?.trim();
+    const amountVal = data.amount;
+    const dueDate = data.dueDate?.trim();
+    if (!data.customerId || !customerName || !Number.isFinite(amountVal) || !amountVal || amountVal <= 0 || !dueDate) {
+      addToast({ type: 'error', title: 'Invoice draft not created', description: 'Select a saved customer and provide a positive amount and due date.' });
+      return;
+    }
+
     const newInv: Invoice = {
       id: `inv-${Math.floor(1000 + Math.random() * 9000)}`,
       invoiceNumber: `#${Math.floor(1000 + Math.random() * 9000)}`,
-      customerId: data.customerId || 'cust-1',
-      customerName: data.customerName || 'Acme Ltd',
+      customerId: data.customerId,
+      customerName,
       amount: amountVal,
       formattedAmount: `₹${amountVal.toLocaleString('en-IN')}`,
       issueDate: new Date().toISOString().split('T')[0],
-      dueDate: data.dueDate || '2026-10-31',
-      status: data.status || 'pending',
-      items: data.items || [
-        { description: 'Business OS Enterprise Consulting Services', quantity: 1, rate: amountVal, total: amountVal }
-      ]
+      dueDate,
+      status: data.status || 'draft',
+      items: data.items || []
     };
 
     setInvoices(prev => [newInv, ...prev]);
     addToast({
-      type: 'success',
-      title: 'Invoice Generated',
-      description: `Invoice ${newInv.invoiceNumber} for ${newInv.formattedAmount} issued to ${newInv.customerName}.`,
+      type: 'info',
+      title: 'Invoice draft added',
+      description: `${newInv.invoiceNumber} is saved in this browser only. It was not issued or sent.`,
     });
 
     const newEvent: ActivityEvent = {
       id: `act-${Date.now()}`,
       timestamp: new Date().toISOString(),
       timeLabel: 'Just now',
-      title: `Invoice ${newInv.invoiceNumber} created`,
+      title: `Invoice draft ${newInv.invoiceNumber} created locally`,
       entityName: `${newInv.customerName} · ${newInv.formattedAmount}`,
       amount: newInv.formattedAmount,
       category: 'finance',
@@ -699,36 +657,46 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const createExpense = (data: Partial<Expense>) => {
-    const amountVal = data.amount || 25000;
+    const title = data.title?.trim();
+    const amountVal = data.amount;
+    if (!title || !Number.isFinite(amountVal) || !amountVal || amountVal <= 0) {
+      addToast({ type: 'error', title: 'Expense draft not created', description: 'Provide a description and a positive amount.' });
+      return;
+    }
     const newExp: Expense = {
       id: `exp-${Date.now()}`,
-      title: data.title || 'Operational Software Tooling',
-      category: data.category || 'Software & Subscriptions',
+      title,
+      category: data.category || 'Operations',
       amount: amountVal,
       formattedAmount: `₹${amountVal.toLocaleString('en-IN')}`,
       date: new Date().toISOString().split('T')[0],
-      vendor: data.vendor || 'Vendor Partner',
+      vendor: data.vendor?.trim() || 'Not specified',
       status: 'pending_approval',
-      requestedBy: 'Pradumn Saindane',
+      requestedBy: 'Not specified',
     };
 
     setExpenses(prev => [newExp, ...prev]);
     addToast({
-      type: 'success',
-      title: 'Expense Submitted',
-      description: `${newExp.title} submitted to approval queue.`,
+      type: 'info',
+      title: 'Expense draft added',
+      description: `${newExp.title} is saved in this browser only. It was not submitted for approval.`,
     });
   };
 
   const createTask = (data: Partial<Task>) => {
+    const title = data.title?.trim();
+    if (!title) {
+      addToast({ type: 'error', title: 'Task not created', description: 'Enter a task title.' });
+      return;
+    }
     const newTask: Task = {
       id: `task-${Date.now()}`,
-      title: data.title || 'Follow up on business milestone',
-      description: data.description || 'Execution task linked to company growth.',
-      priority: data.priority || 'high',
+      title,
+      description: data.description || '',
+      priority: data.priority || 'medium',
       status: 'todo',
-      dueDate: data.dueDate || 'Today',
-      assignedTo: data.assignedTo || 'Pradumn Saindane',
+      dueDate: data.dueDate || 'No due date',
+      assignedTo: data.assignedTo || 'Unassigned',
       customerId: data.customerId,
       customerName: data.customerName,
       potentialRevenue: data.potentialRevenue,
@@ -736,107 +704,48 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     setTasks(prev => [newTask, ...prev]);
     addToast({
-      type: 'success',
-      title: 'Task Created',
-      description: `"${newTask.title}" added to your Work Command Center.`,
+      type: 'info',
+      title: 'Task added locally',
+      description: `"${newTask.title}" is saved in this browser only.`,
     });
   };
 
   const createDeal = (data: Partial<Deal>) => {
-    const valueVal = data.value || 250000;
+    const title = data.title?.trim();
+    const customerName = data.customerName?.trim();
+    const valueVal = data.value;
+    if (!title || !data.customerId || !customerName || !Number.isFinite(valueVal) || !valueVal || valueVal <= 0 ||
+      !Number.isFinite(data.probability) || data.probability === undefined || data.probability < 0 || data.probability > 100) {
+      addToast({ type: 'error', title: 'Deal draft not created', description: 'Provide a title, saved customer, positive value, and probability from 0 to 100.' });
+      return;
+    }
     const newDeal: Deal = {
       id: `deal-${Date.now()}`,
-      title: data.title || 'Enterprise Expansion Contract',
-      customerId: data.customerId || 'cust-1',
-      customerName: data.customerName || 'Acme Ltd',
+      title,
+      customerId: data.customerId,
+      customerName,
       value: valueVal,
       formattedValue: `₹${(valueVal / 100000).toFixed(1)}L`,
       stage: data.stage || 'lead',
-      probability: 40,
-      lastContactDaysAgo: 0,
-      isStale: false,
-      assignedTo: 'Pradumn Saindane',
-      expectedCloseDate: '2026-11-15',
+      probability: data.probability,
+      assignedTo: data.assignedTo?.trim() || 'Unassigned',
+      expectedCloseDate: data.expectedCloseDate?.trim() || '',
     };
 
     setDeals(prev => [newDeal, ...prev]);
     addToast({
-      type: 'success',
-      title: 'Deal Logged',
-      description: `Opportunity for ${newDeal.formattedValue} with ${newDeal.customerName} added to pipeline.`,
+      type: 'info',
+      title: 'Deal draft added',
+      description: `${newDeal.formattedValue} with ${newDeal.customerName} is saved in this browser only.`,
     });
   };
 
   // Natural Language fast action parser
   const executeNaturalLanguageAction = (promptText: string): boolean => {
-    const text = promptText.toLowerCase();
-
-    // Example 1: "Create an invoice for Acme for ₹50,000"
-    if (text.includes('invoice') && text.includes('acme')) {
-      const matchAmount = promptText.match(/(?:₹|rs\.?|inr)?\s*([0-9,]+)/i);
-      const amount = matchAmount ? parseInt(matchAmount[1].replace(/,/g, ''), 10) : 50000;
-      createInvoice({
-        customerId: 'cust-1',
-        customerName: 'Acme Ltd',
-        amount: amount,
-        dueDate: '2026-10-31',
-      });
-      return true;
-    }
-
-    // Example 2: "Follow up with Acme"
-    if (text.includes('follow up') && text.includes('acme')) {
-      const cust = customers.find(c => c.id === 'cust-1');
-      if (cust) {
-        openAIActionModal({
-          title: 'Prepare Follow-Up Email to Acme Ltd',
-          level: 4,
-          source: 'Natural Language Assistant',
-          description: 'AI detected your intent to follow up on the ₹3.2L Enterprise Core System deal.',
-          actionDraft: {
-            recipient: 'Rohan Verma <r.verma@acmecorp.in>',
-            subject: 'Re: Enterprise Core System & Q4 rollout timeline',
-            content: `Hi Rohan,\n\nFollowing up on our discussions last week. We have finalized the architecture provisions you requested.\n\nCould we jump on a brief 10-minute sync tomorrow?\n\nBest regards,\nPradumn Saindane`,
-            payloadType: 'follow_up_email',
-            targetId: cust.id,
-            amount: '₹3.2L'
-          },
-          onExecute: () => {
-            addToast({
-              type: 'success',
-              title: 'Follow-Up Sent',
-              description: 'AI message dispatched to Acme executive team.',
-            });
-          }
-        });
-        return true;
-      }
-    }
-
-    // Example 3: "Add expense 18500 marketing"
-    if (text.includes('expense')) {
-      const matchAmount = promptText.match(/(?:₹|rs\.?|inr)?\s*([0-9,]+)/i);
-      const amount = matchAmount ? parseInt(matchAmount[1].replace(/,/g, ''), 10) : 25000;
-      createExpense({
-        title: 'Natural Language Parsed Expense Claim',
-        category: text.includes('market') ? 'Marketing' : 'Operations',
-        amount: amount,
-        vendor: 'Authorized Vendor',
-      });
-      return true;
-    }
-
-    // Example 4: "Task to call XYZ"
-    if (text.includes('task') || text.includes('remind')) {
-      createTask({
-        title: promptText.replace(/^(create|add|new)\s*task:?/i, '').trim() || 'Urgent Client Followup',
-        priority: 'high',
-        dueDate: 'Today',
-      });
-      return true;
-    }
-
-    return false;
+    const match = promptText.trim().match(/^task:\s*(.+)$/i);
+    if (!match) return false;
+    createTask({ title: match[1].trim() });
+    return true;
   };
 
   return (
@@ -892,9 +801,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         approveExpense,
         rejectExpense,
         completeTask,
-        toggleTodayItemDone,
         advanceDealStage,
-        toggleIntegration,
         markAlertRead,
 
         createCustomer,

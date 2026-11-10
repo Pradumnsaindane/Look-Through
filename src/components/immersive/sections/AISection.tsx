@@ -5,11 +5,11 @@ import { Reveal, SectionHead, StateBox } from '../ui';
 import type { SectionCtx } from '../types';
 
 const LADDER = [
-  { n: '01', name: 'Read', body: 'Grounded in your own records.', icon: <Eye /> },
-  { n: '02', name: 'Suggest', body: 'Recommends a next step.', icon: <Lightbulb /> },
-  { n: '03', name: 'Prepare', body: 'Drafts it for your review.', icon: <FilePen /> },
-  { n: '04', name: 'Approve', body: 'You confirm. Nothing runs without it.', icon: <ShieldCheck /> },
-  { n: '05', name: 'Execute', body: 'Runs only after sign-off.', icon: <Play /> },
+  { n: '01', name: 'Read', body: 'Available: query authorized workspace data.', icon: <Eye /> },
+  { n: '02', name: 'Preview', body: 'Action drafts can be inspected; nothing is sent.', icon: <FilePen /> },
+  { n: '03', name: 'Approve', body: 'No approval workflow is connected.', icon: <ShieldCheck /> },
+  { n: '04', name: 'Execute', body: 'External actions are not available.', icon: <Play /> },
+  { n: '05', name: 'Automate', body: 'No automation policies are configured.', icon: <Lightbulb /> },
 ];
 /** Approved READ tools exposed by /api/ai. Each question maps to exactly one tool; no canned answers. */
 const QUESTIONS = [
@@ -45,15 +45,16 @@ export const AISection: React.FC<{ ctx: SectionCtx }> = ({ ctx }) => {
       body: JSON.stringify({ prompt: q.label, tool: q.tool, mode: 'READ', input: {} }),
     });
     if (!res.ok || !res.data) setRun({ tool: q.tool, label: q.label, status: 'error', message: res.error?.message ?? `The AI service returned status ${res.status}.` });
+    else if (!res.data.grounded) setRun({ tool: q.tool, label: q.label, status: 'error', message: 'The service did not return a grounded result. No answer is displayed.' });
     else setRun({ tool: q.tool, label: q.label, status: 'ok', result: res.data.result, runId: res.data.runId });
   };
 
   const raw = run?.status === 'ok' ? JSON.stringify(run.result, null, 2) : '';
   return (
     <section id="ai" className="lt-section" aria-labelledby="lt-ai-h">
-      <SectionHead eyebrow="AI intelligence" title="An intelligent layer across the whole workspace" body="It reads your data, suggests, prepares, and waits for your approval. It never acts on its own." />
+      <SectionHead eyebrow="AI intelligence" title="Read-only answers for your workspace" body="Available now: grounded business questions. Action drafts are previews only; no messages or updates are sent." />
       <h3 id="lt-ai-h" className="lt-sr">AI assistant</h3>
-      <ol className="lt-ladder" style={{ listStyle: 'none' }} aria-label="AI action hierarchy">
+      <ol className="lt-ladder" style={{ listStyle: 'none' }} aria-label="AI capabilities and current limitations">
         {LADDER.map((s, i) => <Reveal as="li" key={s.n} delay={i * 80} className="lt-glass lt-step"><span>{s.n}</span><strong>{s.name}</strong><p>{s.body}</p></Reveal>)}
       </ol>
       <Reveal delay={120} className="lt-glass lt-glass-strong">
@@ -62,7 +63,7 @@ export const AISection: React.FC<{ ctx: SectionCtx }> = ({ ctx }) => {
             <strong style={{ fontSize: 18 }}>Ask about your business</strong>
             <span className="lt-pill">Read-only · grounded</span>
           </div>
-          <p style={{ color: 'var(--muted)', fontSize: 14.5, marginTop: 6 }}>Each question runs one approved read tool against your organization's data and shows exactly what came back.</p>
+          <p style={{ color: 'var(--muted)', fontSize: 14.5, marginTop: 6 }}>Each question runs one approved read tool against your organization&apos;s data. Only grounded results are displayed.</p>
           {!authed
             ? <StateBox kind={ctx.sessionState === 'initializing' ? 'loading' : 'guest'} title="AI needs your workspace" body="Sign in with an authorized account to ask questions about your own data." action={ctx.sessionState === 'guest' ? <button className="lt-btn lt-btn-primary lt-btn-sm" onClick={ctx.openAuth}>Sign in</button> : undefined} />
             : <>

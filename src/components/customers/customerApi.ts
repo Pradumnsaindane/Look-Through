@@ -24,10 +24,10 @@ const toInvoice = (row: Record<string, unknown>): Invoice => {
 
 const toDeal = (row: Record<string, unknown>): Deal => {
   const value = Number(row.amount_minor || 0) / 100
-  return { id: String(row.id), title: String(row.name || ''), customerId: String(row.customer_id || ''), customerName: '', value, formattedValue: `₹${value.toLocaleString('en-IN')}`, stage: (String(row.stage || 'lead') as Deal['stage']), probability: 0, lastContactDaysAgo: 0, isStale: false, assignedTo: '', expectedCloseDate: '' }
+  return { id: String(row.id), title: String(row.name || ''), customerId: String(row.customer_id || ''), customerName: '', value, formattedValue: `₹${value.toLocaleString('en-IN')}`, stage: (String(row.stage || 'lead') as Deal['stage']) }
 }
 
-const toCustomer = (row: CustomerRecord): Customer => ({ id: row.id, name: row.name, company: row.name, email: row.email || '', phone: row.phone || '', revenue: 0, formattedRevenue: '₹0', lastActivity: 'No activity', lastActivityDaysAgo: 0, status: row.status === 'prospect' ? 'New' : row.status === 'inactive' ? 'At Risk' : 'Active', healthScore: row.status === 'inactive' ? 40 : 80, openInvoicesCount: 0, openInvoicesAmount: 0, openOpportunitiesCount: 0, openOpportunitiesAmount: 0, avatarBg: 'from-blue-500 to-indigo-600', tags: [], notes: [], industry: 'Customer account' })
+const toCustomer = (row: CustomerRecord): Customer => ({ id: row.id, name: row.name, company: row.name, email: row.email || '', phone: row.phone || '', status: row.status === 'prospect' ? 'New' : row.status === 'inactive' ? 'At Risk' : 'Active', avatarBg: 'from-blue-500 to-indigo-600', tags: [], notes: [] })
 
 export function useCustomers(search: string, status: string, page: number, pageSize = 20) {
   const query = new URLSearchParams({ q: search, status: status === 'All' ? 'all' : status, page: String(page), pageSize: String(pageSize) })

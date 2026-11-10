@@ -53,7 +53,7 @@ export const RequireAuthentication: React.FC<RequireAuthenticationProps> = ({
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <button onClick={() => setShowAuth(true)} className="rounded-md bg-[var(--ink)] px-4 py-2.5 text-sm font-semibold text-[var(--surface)]">Log in</button>
           <button onClick={() => setShowAuth(true)} className="rounded-md border border-[var(--hairline)] px-4 py-2.5 text-sm font-semibold">Create account</button>
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="rounded-md px-4 py-2.5 text-sm ledger-muted hover:text-ink">Continue exploring</button>
+          <a href="/" className="rounded-md px-4 py-2.5 text-sm ledger-muted hover:text-ink">Explore the public site</a>
         </div>
       </div>
     </section>

@@ -1,0 +1,352 @@
+import React from 'react';
+import {
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+  Search,
+  Bell,
+  Plus,
+  Layers,
+  Users,
+  IndianRupee,
+} from 'lucide-react';
+import { LookThroughMark } from '../brand/LookThroughMark';
+
+export const StoryTabletMockup: React.FC = () => {
+  return (
+    <div className="relative w-full bg-[#0B0C0E] text-[#F2F2F3] font-sans select-none antialiased">
+      {/* Subtle screen ambient glass reflection highlight */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.015] to-white/[0.03] z-10"
+        aria-hidden="true"
+      />
+
+      {/* ---------- 1. Dashboard Header ---------- */}
+      <header className="relative z-0 flex items-center justify-between border-b border-[#30343B] bg-[#101114]/95 px-3 sm:px-5 py-2.5 sm:py-3 backdrop-blur-sm">
+        {/* Left: Brand Identity, Workspace & Live Indicator */}
+        <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+          <div className="flex items-center gap-2">
+            <LookThroughMark className="w-5 sm:w-6 text-[#4c6fff]" />
+            <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-wider text-[#F2F2F3] hidden xs:inline">
+              LOOK THROUGH
+            </span>
+          </div>
+
+          <span className="h-3.5 w-px bg-[#30343B] hidden sm:block" aria-hidden="true" />
+
+          <div className="hidden sm:flex items-center gap-1.5 min-w-0">
+            <span className="text-[11px] text-[#A1A4AA] truncate font-medium">Acme Studio</span>
+            <span className="text-[10px] text-[#777C85]">/</span>
+            <span className="text-[11px] text-[#F2F2F3] truncate">Operations</span>
+          </div>
+
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-mono text-emerald-400 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="hidden md:inline">LIVE SYNC</span>
+          </span>
+        </div>
+
+        {/* Center: Compact Navigation Tabs */}
+        <nav
+          className="hidden md:flex items-center gap-1 bg-[#15171B] p-1 rounded-lg border border-[#30343B]"
+          aria-label="Tablet navigation"
+        >
+          <span className="px-2.5 py-1 rounded-[5px] bg-[#22252B] text-[#F2F2F3] text-[11px] font-medium border border-[#30343B]/60 shadow-xs">
+            Overview
+          </span>
+          <span className="px-2.5 py-1 rounded-[5px] text-[#A1A4AA] text-[11px] hover:text-[#F2F2F3] transition-colors">
+            Today <b className="text-[10px] font-mono bg-[#22252B] px-1 py-0.2 rounded text-[#F2F2F3] ml-0.5">3</b>
+          </span>
+          <span className="px-2.5 py-1 rounded-[5px] text-[#A1A4AA] text-[11px] hover:text-[#F2F2F3] transition-colors">
+            Pipeline
+          </span>
+          <span className="px-2.5 py-1 rounded-[5px] text-[#A1A4AA] text-[11px] hover:text-[#F2F2F3] transition-colors">
+            Finance
+          </span>
+          <span className="px-2.5 py-1 rounded-[5px] text-[#A1A4AA] text-[11px] hover:text-[#F2F2F3] transition-colors">
+            Intelligence
+          </span>
+        </nav>
+
+        {/* Right: Quick Controls, Search, Profile */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#15171B] border border-[#30343B] text-[10.5px] text-[#A1A4AA]">
+            <Search className="w-3 h-3 text-[#777C85]" />
+            <span className="font-mono text-[9.5px]">⌘K Search</span>
+          </div>
+
+          <button
+            type="button"
+            className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[#17191D] hover:bg-[#202328] border border-[#30343B] text-[11px] font-medium text-[#F2F2F3] transition-colors"
+          >
+            <Plus className="w-3 h-3 text-[#4c6fff]" />
+            <span>Action</span>
+          </button>
+
+          <div className="relative p-1 text-[#A1A4AA] hover:text-[#F2F2F3]">
+            <Bell className="w-3.5 h-3.5" />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#4c6fff]" />
+          </div>
+
+          <div className="flex items-center justify-center w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-[#17191D] border border-[#30343B] text-[10px] font-mono font-semibold text-[#F2F2F3]">
+            LT
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- Main Tablet Workspace Body ---------- */}
+      <div className="p-3 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
+        {/* ---------- 2. Business Overview KPI Cards ---------- */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+          {/* Revenue Overview */}
+          <div className="p-2.5 sm:p-3 rounded-xl bg-[#15171B] border border-[#30343B] shadow-xs">
+            <div className="flex items-center justify-between text-[#A1A4AA]">
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider">Revenue (MTD)</span>
+              <TrendingUp className="w-3 h-3 text-emerald-400" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-base sm:text-lg md:text-xl font-bold font-mono text-[#F2F2F3]">₹4.82L</span>
+              <span className="text-[10px] font-mono font-medium text-emerald-400">↑ 12.4%</span>
+            </div>
+            <div className="mt-1 text-[9.5px] sm:text-[10.5px] text-[#777C85] truncate">
+              96.4% target · 8 days left
+            </div>
+          </div>
+
+          {/* Active Customers */}
+          <div className="p-2.5 sm:p-3 rounded-xl bg-[#15171B] border border-[#30343B] shadow-xs">
+            <div className="flex items-center justify-between text-[#A1A4AA]">
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider">Active Customers</span>
+              <Users className="w-3 h-3 text-[#4c6fff]" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-base sm:text-lg md:text-xl font-bold font-mono text-[#F2F2F3]">248</span>
+              <span className="text-[10px] font-mono font-medium text-emerald-400">+18 MTD</span>
+            </div>
+            <div className="mt-1 text-[9.5px] sm:text-[10.5px] text-[#777C85] truncate">
+              82% health score · 0.8% churn
+            </div>
+          </div>
+
+          {/* Open Deals / Pipeline */}
+          <div className="p-2.5 sm:p-3 rounded-xl bg-[#15171B] border border-[#30343B] shadow-xs">
+            <div className="flex items-center justify-between text-[#A1A4AA]">
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider">Sales Pipeline</span>
+              <IndianRupee className="w-3 h-3 text-amber-400" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-base sm:text-lg md:text-xl font-bold font-mono text-[#F2F2F3]">₹16.5L</span>
+              <span className="text-[10px] font-mono text-[#A1A4AA]">14 deals</span>
+            </div>
+            <div className="mt-1 text-[9.5px] sm:text-[10.5px] text-[#777C85] truncate">
+              3 high-value need contact
+            </div>
+          </div>
+
+          {/* Pending Tasks & Focus */}
+          <div className="p-2.5 sm:p-3 rounded-xl bg-[#15171B] border border-[#30343B] shadow-xs">
+            <div className="flex items-center justify-between text-[#A1A4AA]">
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider">Focus Today</span>
+              <Clock className="w-3 h-3 text-[#ff7a45]" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-base sm:text-lg md:text-xl font-bold font-mono text-[#F2F2F3]">08</span>
+              <span className="text-[10px] font-mono font-medium text-[#ff7a45]">3 critical</span>
+            </div>
+            <div className="mt-1 text-[9.5px] sm:text-[10.5px] text-[#777C85] truncate">
+              Awaiting your approval
+            </div>
+          </div>
+        </div>
+
+        {/* ---------- 3. Split Grid: Operational Activity & AI Intelligence ---------- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
+          {/* Operational Activity (Left - 7 cols on lg) */}
+          <div className="lg:col-span-7 flex flex-col justify-between p-3 sm:p-4 rounded-xl bg-[#15171B] border border-[#30343B] shadow-xs">
+            <div>
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#30343B]/60">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-3.5 h-3.5 text-[#4c6fff]" />
+                  <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-[#F2F2F3] font-semibold">
+                    Operational Priority Queue
+                  </span>
+                </div>
+                <span className="text-[9.5px] sm:text-[10.5px] font-mono text-[#777C85]">3 context-attached</span>
+              </div>
+
+              {/* Priority Items List */}
+              <div className="mt-2.5 space-y-2">
+                {/* Item 1: Critical Receivable */}
+                <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#17191D] border border-[#30343B]/50 hover:border-[#30343B] transition-colors">
+                  <div className="flex items-start gap-2 sm:gap-2.5 min-w-0">
+                    <span className="mt-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 shrink-0">
+                      CRITICAL
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[11.5px] sm:text-[12.5px] font-medium text-[#F2F2F3] truncate">
+                        TechCorp Solutions · Invoice #INV-2024-089
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-[#A1A4AA] truncate">
+                        ₹1,80,000 overdue by 8 days · Payment reminder drafted
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="shrink-0 flex items-center gap-1 px-2 py-1 rounded bg-[#20232A] hover:bg-[#282C35] border border-[#30343B] text-[10px] sm:text-[11px] font-medium text-[#F2F2F3] transition-colors"
+                  >
+                    <span>Review</span>
+                    <ArrowRight className="w-2.5 h-2.5 text-[#A1A4AA]" />
+                  </button>
+                </div>
+
+                {/* Item 2: Stagnant Deal */}
+                <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#17191D] border border-[#30343B]/50 hover:border-[#30343B] transition-colors">
+                  <div className="flex items-start gap-2 sm:gap-2.5 min-w-0">
+                    <span className="mt-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
+                      HIGH
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[11.5px] sm:text-[12.5px] font-medium text-[#F2F2F3] truncate">
+                        Apex Global · Annual Contract Renewal
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-[#A1A4AA] truncate">
+                        ₹4,20,000 ARR · Expires in 14 days · No touchpoint in 5d
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="shrink-0 flex items-center gap-1 px-2 py-1 rounded bg-[#20232A] hover:bg-[#282C35] border border-[#30343B] text-[10px] sm:text-[11px] font-medium text-[#F2F2F3] transition-colors"
+                  >
+                    <span>Nudge</span>
+                    <ArrowRight className="w-2.5 h-2.5 text-[#A1A4AA]" />
+                  </button>
+                </div>
+
+                {/* Item 3: Upcoming Decision */}
+                <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#17191D] border border-[#30343B]/50 hover:border-[#30343B] transition-colors">
+                  <div className="flex items-start gap-2 sm:gap-2.5 min-w-0">
+                    <span className="mt-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold bg-[#4c6fff]/15 text-[#9cb4ff] border border-[#4c6fff]/30 shrink-0">
+                      DECISION
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[11.5px] sm:text-[12.5px] font-medium text-[#F2F2F3] truncate">
+                        Sprint Delivery & Marketing Budget Baseline
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-[#A1A4AA] truncate">
+                        Today at 3:30 PM · 6 attendees · Context & briefing attached
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="shrink-0 flex items-center gap-1 px-2 py-1 rounded bg-[#20232A] hover:bg-[#282C35] border border-[#30343B] text-[10px] sm:text-[11px] font-medium text-[#F2F2F3] transition-colors"
+                  >
+                    <span>Briefing</span>
+                    <ArrowRight className="w-2.5 h-2.5 text-[#A1A4AA]" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Micro Project Status bar */}
+            <div className="mt-3 pt-2.5 border-t border-[#30343B]/60 flex items-center justify-between text-[10px] text-[#A1A4AA]">
+              <span className="font-mono">Q4 Product Release — 68% complete</span>
+              <div className="w-28 sm:w-36 h-1.5 rounded-full bg-[#101114] border border-[#30343B]/40 overflow-hidden">
+                <div className="h-full bg-[#4c6fff] rounded-full w-[68%]" />
+              </div>
+            </div>
+          </div>
+
+          {/* AI Intelligence Panel (Right - 5 cols on lg) - Refined Charcoal/Graphite Identity */}
+          <div className="lg:col-span-5 flex flex-col justify-between p-3 sm:p-4 rounded-xl bg-[#15171B] border border-[#30343B] shadow-xs relative overflow-hidden">
+            {/* Extremely restrained ambient indicator glow */}
+            <div
+              className="pointer-events-none absolute -top-12 -right-12 w-32 h-32 bg-[#4c6fff]/[0.05] rounded-full blur-3xl"
+              aria-hidden="true"
+            />
+
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-[#30343B]/60">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#4c6fff]" />
+                  <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-[#F2F2F3] font-semibold">
+                    AI Intelligence
+                  </span>
+                </div>
+                <span className="text-[8.5px] font-mono px-2 py-0.5 rounded-full bg-[#1F2228] text-[#A1A4AA] border border-[#30343B]">
+                  RECOMMENDATION
+                </span>
+              </div>
+
+              {/* Business Insight */}
+              <div className="mt-2.5">
+                <span className="text-[10px] font-mono text-[#777C85] uppercase tracking-wider">
+                  Working Capital Anomaly
+                </span>
+                <p className="mt-1 text-[11px] sm:text-[12px] leading-relaxed text-[#A1A4AA]">
+                  TechCorp delayed invoice (₹1.80L) and marketing budget acceleration will contract cash runway from{' '}
+                  <strong className="text-[#F2F2F3] font-medium">7.4 to 6.2 months</strong> if unresolved by Friday.
+                </p>
+              </div>
+
+              {/* Suggested Action Box */}
+              <div className="mt-2.5 p-2.5 sm:p-3 rounded-lg bg-[#17191D] border border-[#30343B]">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+                  <div>
+                    <span className="text-[10.5px] sm:text-[11.5px] font-medium text-[#F2F2F3] block">
+                      Approve contextual payment reminder
+                    </span>
+                    <span className="text-[9.5px] sm:text-[10px] text-[#777C85] block mt-0.5 leading-snug">
+                      Tailored draft referencing past 2 deliverable sign-offs ready for review.
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="w-full mt-2.5 py-1.5 px-3 rounded-md bg-[#22252B] hover:bg-[#2B3038] border border-[#30343B] text-[#F2F2F3] text-[10.5px] sm:text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <span>Review & Approve Action</span>
+                  <ArrowRight className="w-3 h-3 text-[#4c6fff]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Clear Distinction: AI Recommendations vs Verified Business Data */}
+            <div className="mt-3 pt-2 border-t border-[#30343B]/60 flex items-center justify-between text-[9px] sm:text-[9.5px] font-mono text-[#777C85]">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4c6fff]" />
+                <span className="text-[#A1A4AA]">AI Synthesized</span>
+              </span>
+              <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span>100% Verified Ledger Data</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------- 4. Tablet Screen Bottom Status Bar ---------- */}
+      <footer className="flex items-center justify-between border-t border-[#30343B] bg-[#101114] px-3 sm:px-5 py-1.5 text-[9px] sm:text-[10px] font-mono text-[#777C85]">
+        <div className="flex items-center gap-2">
+          <span>Look Through Engine v2.4</span>
+          <span className="hidden sm:inline text-[#30343B]">•</span>
+          <span className="hidden sm:inline text-[#A1A4AA]">Bank feeds, Stripe & CRM connected</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="text-[#A1A4AA]">All services operational</span>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default StoryTabletMockup;

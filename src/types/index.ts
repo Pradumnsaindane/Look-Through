@@ -41,20 +41,20 @@ export interface Customer {
   company: string;
   email: string;
   phone: string;
-  revenue: number; // in INR
-  formattedRevenue: string;
-  lastActivity: string;
-  lastActivityDaysAgo: number;
+  revenue?: number; // in INR
+  formattedRevenue?: string;
+  lastActivity?: string;
+  lastActivityDaysAgo?: number;
   status: 'Active' | 'Attention' | 'At Risk' | 'New';
-  healthScore: number; // 0 - 100
-  openInvoicesCount: number;
-  openInvoicesAmount: number;
-  openOpportunitiesCount: number;
-  openOpportunitiesAmount: number;
+  healthScore?: number; // 0 - 100
+  openInvoicesCount?: number;
+  openInvoicesAmount?: number;
+  openOpportunitiesCount?: number;
+  openOpportunitiesAmount?: number;
   avatarBg: string;
   tags: string[];
   notes: string[];
-  industry: string;
+  industry?: string;
 }
 
 export interface Deal {
@@ -65,11 +65,11 @@ export interface Deal {
   value: number; // in INR
   formattedValue: string;
   stage: 'lead' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
-  probability: number;
-  lastContactDaysAgo: number;
-  isStale: boolean;
-  assignedTo: string;
-  expectedCloseDate: string;
+  probability?: number;
+  lastContactDaysAgo?: number;
+  isStale?: boolean;
+  assignedTo?: string;
+  expectedCloseDate?: string;
 }
 
 export interface Invoice {
@@ -105,7 +105,7 @@ export interface Task {
   title: string;
   description?: string;
   priority: 'critical' | 'high' | 'medium' | 'low';
-  status: 'todo' | 'in_progress' | 'completed';
+  status: 'todo' | 'in_progress' | 'completed' | 'cancelled';
   dueDate: string;
   assignedTo: string;
   // Business outcome linkage chain
@@ -162,7 +162,6 @@ export interface OperationalTodayItem {
     targetId?: string;
     details?: string;
   };
-  isDone?: boolean;
 }
 
 export interface AlertItem {

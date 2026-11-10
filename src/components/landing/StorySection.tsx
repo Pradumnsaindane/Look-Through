@@ -1,8 +1,7 @@
 import React from 'react';
-import { ArrowRight, FileText, Network, Sparkles, Users, Workflow } from 'lucide-react';
 import { useReveal } from './useReveal';
-
-const nodes = ['Meetings', 'Tasks', 'Projects', 'Learning', 'AI insight', 'Decisions'];
+import { ContainerScroll } from '../ui/container-scroll-animation';
+import { StoryTabletMockup } from './StoryTabletMockup';
 
 const steps = [
   {
@@ -22,8 +21,6 @@ const steps = [
   },
 ];
 
-const nodeIcons = [Users, FileText, Workflow, Network, Sparkles, ArrowRight];
-
 export const StorySection: React.FC = () => {
   const ref = useReveal<HTMLElement>();
 
@@ -38,19 +35,10 @@ export const StorySection: React.FC = () => {
         </p>
       </div>
 
-      <div className="story-graph" aria-hidden="true">
-        <div className="graph-line graph-line-one" />
-        <div className="graph-line graph-line-two" />
-        <div className="graph-core"><span>=</span><strong>LOOK<br />THROUGH</strong></div>
-        {nodes.map((label, index) => {
-          const Icon = nodeIcons[index];
-          return (
-            <div className={`graph-node graph-node-${index}`} key={label}>
-              <span><Icon /></span>{label}
-            </div>
-          );
-        })}
-      </div>
+      <ContainerScroll>
+        <StoryTabletMockup />
+      </ContainerScroll>
+
       <p className="story-center-copy">One context. Fewer blind spots. Better next actions.</p>
 
       <div className="lp-story-grid">

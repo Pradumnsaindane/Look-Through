@@ -4,18 +4,12 @@ import {
   Users, 
   Search, 
   Plus, 
-  Filter, 
   ArrowUpRight, 
-  Building2, 
-  AlertCircle, 
   Activity, 
   Kanban,
-  FileSpreadsheet,
-  Briefcase,
   Upload
 } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
-import { Customer } from '../../types';
 import { SalesPipelineKanban } from './SalesPipelineKanban';
 import { CustomerDetailDrawer } from './CustomerDetailDrawer';
 import { CustomerImportModal } from './CustomerImportModal';
@@ -26,7 +20,6 @@ export const CustomersView: React.FC = () => {
     setCustomerSubTab, 
     setSelectedCustomer, 
     setIsCreateModalOpen,
-    deals,
     activityEvents
   } = useBusiness();
 
@@ -179,7 +172,7 @@ export const CustomersView: React.FC = () => {
                               <div className="font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
                                 {c.name}
                               </div>
-                              <div className="text-[11px] text-slate-400">{c.industry}</div>
+                              <div className="text-[11px] text-slate-400">{c.industry || 'Industry not provided'}</div>
                             </div>
                           </div>
                         </td>
@@ -187,43 +180,47 @@ export const CustomersView: React.FC = () => {
                         {/* Health Score */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
-                            <span className={`font-mono font-bold ${
-                              c.healthScore >= 80 ? 'text-emerald-400' :
-                              c.healthScore >= 60 ? 'text-amber-400' : 'text-rose-400'
-                            }`}>
-                              {c.healthScore}%
-                            </span>
-                            <div className="w-16 bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${
-                                  c.healthScore >= 80 ? 'bg-emerald-500' :
-                                  c.healthScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'
-                                }`}
-                                style={{ width: `${c.healthScore}%` }}
-                              />
-                            </div>
+                            {c.healthScore == null ? <span className="text-slate-400">Not available</span> : <>
+                              <span className={`font-mono font-bold ${
+                                c.healthScore >= 80 ? 'text-emerald-400' :
+                                c.healthScore >= 60 ? 'text-amber-400' : 'text-rose-400'
+                              }`}>
+                                {c.healthScore}%
+                              </span>
+                              <div className="w-16 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    c.healthScore >= 80 ? 'bg-emerald-500' :
+                                    c.healthScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'
+                                  }`}
+                                  style={{ width: `${c.healthScore}%` }}
+                                />
+                              </div>
+                            </>}
                           </div>
                         </td>
 
                         {/* Revenue */}
                         <td className="py-3.5 px-4 font-mono font-semibold text-slate-200">
-                          {c.formattedRevenue}
+                          {c.formattedRevenue || 'Not available'}
                         </td>
 
                         {/* Open Invoices */}
                         <td className="py-3.5 px-4">
-                          {c.openInvoicesAmount > 0 ? (
+                          {c.openInvoicesAmount == null ? (
+                            <span className="text-slate-400">Not available</span>
+                          ) : c.openInvoicesAmount > 0 ? (
                             <span className="font-mono text-amber-400 font-semibold">
-                              ₹{(c.openInvoicesAmount / 1000).toFixed(0)}k ({c.openInvoicesCount})
+                              ₹{(c.openInvoicesAmount / 1000).toFixed(0)}k ({c.openInvoicesCount ?? '—'})
                             </span>
                           ) : (
-                            <span className="text-slate-400">All settled</span>
+                            <span className="text-slate-400">No open invoices</span>
                           )}
                         </td>
 
                         {/* Last Activity */}
                         <td className="py-3.5 px-4 text-slate-300">
-                          {c.lastActivity}
+                          {c.lastActivity || 'Not available'}
                         </td>
 
                         {/* Status */}

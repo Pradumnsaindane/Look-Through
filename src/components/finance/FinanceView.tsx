@@ -1,25 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  IndianRupee, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  FileText, 
-  Receipt, 
-  Plus, 
-  ArrowUpRight, 
-  Send, 
-  CheckCircle2, 
-  Clock, 
-  ShieldAlert,
-  Calendar
-} from 'lucide-react';
+import { TrendingUp, AlertTriangle, FileText, Receipt, Plus, Send, CheckCircle2 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
   AreaChart, 
   Area, 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   Tooltip, 
@@ -134,24 +118,24 @@ export const FinanceView: React.FC = () => {
   if (invoices.length === 0 && expenses.length === 0) {
     return <div className="mx-auto max-w-4xl rounded-2xl border border-dashed border-slate-700 bg-slate-900/70 p-10 text-center">
       <h1 className="text-2xl font-extrabold text-slate-100">Financial Domain & Treasury</h1>
-      <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">No persisted invoices or expenses are connected to this organization yet. Financial metrics, charts, receivables aging, and approvals remain blank instead of showing sample numbers.</p>
+      <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">No browser-local invoice or expense records are available. Metrics remain blank rather than showing sample numbers.</p>
       <button onClick={() => setIsCreateModalOpen(true)} className="mt-6 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500">Add financial record</button>
     </div>;
   }
 
-  const handleLaunchAIPaymentSequence = () => {
+  const handlePreviewPaymentReminders = () => {
     if (overdueInvoices.length === 0) return;
     const overdueTotalFormatted = formatINR(overdueReceivables);
     const clientNames = Array.from(new Set(overdueInvoices.map(i => i.customerName))).slice(0, 3).join(', ');
     openAIActionModal({
-      title: 'Dispatch Batch Receivables Recovery Sequence',
+      title: 'Review batch reminder draft',
       level: 4,
-      source: 'Working Capital Optimizer',
-      description: `${overdueTotalFormatted} is currently overdue across ${overdueInvoices.length} client invoice${overdueInvoices.length > 1 ? 's' : ''}. AI will generate individual personalized settlement links with UPI & Card payment options.`,
+      source: 'Browser-local invoice records',
+      description: `${overdueTotalFormatted} is marked overdue across ${overdueInvoices.length} local invoice${overdueInvoices.length > 1 ? 's' : ''}. This is a preview only; no payment links or messages will be generated or sent.`,
       actionDraft: {
         recipient: `${overdueInvoices.length} Client Accounts (${clientNames})`,
         subject: 'Statement of Overdue Accounts — Workspace Notice',
-        content: 'Automated multi-channel dispatch: Email + WhatsApp invoice links sent with 3-day resolution schedule.',
+        content: `Reminder draft for ${overdueInvoices.length} invoice${overdueInvoices.length > 1 ? 's' : ''} totaling ${overdueTotalFormatted}. No message or payment link has been sent.`,
         payloadType: 'batch_payment_chaser',
         amount: overdueTotalFormatted
       }
@@ -167,7 +151,7 @@ export const FinanceView: React.FC = () => {
             Financial Domain & Treasury
           </h1>
           <p className="text-xs text-slate-400">
-            Real-time cash positioning, revenue recognition, invoice aging, and autonomous expense control.
+            Browser-local invoice and expense records. Payments, reminders, and approvals are not processed.
           </p>
         </div>
 
@@ -215,7 +199,7 @@ export const FinanceView: React.FC = () => {
           <div className="text-xl font-bold font-mono text-slate-100">{formatINR(totalExpenses)}</div>
           <div className="text-[11px] text-amber-400 font-semibold flex items-center gap-0.5 mt-0.5">
             <TrendingUp className="w-3 h-3" />
-            <span>{approvedExpenses.length} approved claims</span>
+            <span>{approvedExpenses.length} marked approved locally</span>
           </div>
         </div>
 
@@ -300,7 +284,7 @@ export const FinanceView: React.FC = () => {
                   <FileText className="w-8 h-8 text-slate-600 mb-2" />
                   <p className="text-sm font-semibold text-slate-300">No Monthly Financial Records Yet</p>
                   <p className="text-xs text-slate-500 max-w-sm mt-1">
-                    Record paid invoices and approved expenses to visualize month-over-month cash flow and margin trends.
+                    Browser-local paid invoices and approved expenses appear here; no accounting or payment system is connected.
                   </p>
                 </div>
               )}
@@ -317,7 +301,7 @@ export const FinanceView: React.FC = () => {
                     ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
                     : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                 }`}>
-                  {overdueReceivables > 0 ? `${formatINR(overdueReceivables)} Overdue` : 'Zero Overdue'}
+                  {overdueReceivables > 0 ? `${formatINR(overdueReceivables)} Overdue` : 'No local overdue invoices'}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">DSO aging distribution across invoices</p>
@@ -342,14 +326,14 @@ export const FinanceView: React.FC = () => {
               ) : (
                 <div className="p-6 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl bg-slate-950/40 mt-4">
                   <CheckCircle2 className="w-6 h-6 mx-auto mb-1 text-emerald-500" />
-                  <p className="text-xs font-semibold text-slate-300">All Receivables Settled</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">No outstanding client receivables currently pending.</p>
+                  <p className="text-xs font-semibold text-slate-300">No local invoices marked overdue</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">No browser-local invoice records are currently overdue.</p>
                 </div>
               )}
             </div>
 
             <button
-              onClick={handleLaunchAIPaymentSequence}
+              onClick={handlePreviewPaymentReminders}
               disabled={overdueInvoices.length === 0}
               className={`w-full py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 shadow-lg transition-all mt-4 ${
                 overdueInvoices.length > 0
@@ -358,7 +342,7 @@ export const FinanceView: React.FC = () => {
               }`}
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{overdueInvoices.length > 0 ? 'Launch AI Payment Sequence' : 'No Overdue Invoices'}</span>
+              <span>{overdueInvoices.length > 0 ? 'Preview reminder drafts' : 'No Overdue Invoices'}</span>
             </button>
           </div>
         </div>
@@ -425,7 +409,7 @@ export const FinanceView: React.FC = () => {
                           inv.status === 'overdue' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse' :
                           'bg-blue-500/15 text-blue-300 border-blue-500/30'
                         }`}>
-                          {inv.status}
+                          {inv.status === 'paid' ? 'Paid locally' : inv.status}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -435,7 +419,7 @@ export const FinanceView: React.FC = () => {
                               onClick={() => sendInvoiceReminder(inv.id)}
                               className="px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 text-xs font-semibold cursor-pointer"
                             >
-                              Send AI Reminder
+                              Preview reminder
                             </button>
                           )}
                           {inv.status !== 'paid' && (
@@ -443,7 +427,7 @@ export const FinanceView: React.FC = () => {
                               onClick={() => markInvoicePaid(inv.id)}
                               className="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 text-xs font-semibold cursor-pointer"
                             >
-                              Mark Paid
+                              Mark paid locally
                             </button>
                           )}
                         </div>
@@ -518,18 +502,18 @@ export const FinanceView: React.FC = () => {
                             onClick={() => rejectExpense(exp.id)}
                             className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
                           >
-                            Reject
+                            Mark rejected locally
                           </button>
                           <button
                             onClick={() => approveExpense(exp.id)}
                             className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all cursor-pointer"
                           >
-                            Approve Claim
+                            Mark approved locally
                           </button>
                         </>
                       ) : (
                         <span className="text-xs font-semibold capitalize px-2.5 py-1 rounded bg-slate-800 text-slate-300">
-                          {exp.status}
+                          {exp.status === 'approved' ? 'Approved locally' : exp.status === 'rejected' ? 'Rejected locally' : exp.status}
                         </span>
                       )}
                     </div>
@@ -552,7 +536,7 @@ export const FinanceView: React.FC = () => {
               </p>
             </div>
             <button
-              onClick={handleLaunchAIPaymentSequence}
+              onClick={handlePreviewPaymentReminders}
               disabled={overdueInvoices.length === 0}
               className={`px-4 py-2 rounded-xl font-semibold text-xs shadow-md transition-all ${
                 overdueInvoices.length > 0
@@ -560,7 +544,7 @@ export const FinanceView: React.FC = () => {
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
               }`}
             >
-              Dispatch Automated Reminders
+              Preview reminder drafts
             </button>
           </div>
 
@@ -568,8 +552,8 @@ export const FinanceView: React.FC = () => {
             {overdueInvoices.length === 0 ? (
               <div className="p-8 text-center text-slate-500 rounded-xl bg-slate-950 border border-slate-800">
                 <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
-                <p className="text-sm font-semibold text-slate-300">Zero Overdue Receivables</p>
-                <p className="text-xs text-slate-500 mt-1">All issued client invoices are paid or currently within terms.</p>
+                <p className="text-sm font-semibold text-slate-300">No local invoices marked overdue</p>
+                <p className="text-xs text-slate-500 mt-1">No browser-local invoice records are currently overdue.</p>
               </div>
             ) : (
               overdueInvoices.map(inv => (
@@ -584,7 +568,7 @@ export const FinanceView: React.FC = () => {
                       onClick={() => sendInvoiceReminder(inv.id)}
                       className="px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 text-xs font-semibold cursor-pointer"
                     >
-                      Remind Client
+                      Preview reminder
                     </button>
                   </div>
                 </div>
@@ -596,4 +580,3 @@ export const FinanceView: React.FC = () => {
     </div>
   );
 };
-

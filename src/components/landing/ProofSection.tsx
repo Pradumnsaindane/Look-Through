@@ -1,6 +1,7 @@
 import React from 'react';
-import { Play, Quote, Users } from 'lucide-react';
+import { Quote, Users } from 'lucide-react';
 import { useReveal } from './useReveal';
+import { DemoVideoPlayer } from './DemoVideoPlayer';
 
 const testimonials = [
   { tag: 'Team story', body: 'Content coming soon', detail: 'Verified customer quotes are published here once approved by the customer.' },
@@ -42,15 +43,8 @@ export const ProofSection: React.FC = () => {
           ))}
         </div>
 
-        <div className="lp-video" aria-label="Demo video placeholder">
-          <div>
-            <span className="lp-video-play"><Play size={26} aria-hidden="true" /></span>
-            <h3>Demo video coming soon</h3>
-            <p>
-              This space is reserved for a recorded walkthrough of the product. No customer or demo video is
-              shown until it exists.
-            </p>
-          </div>
+        <div className="lp-video" aria-label="Product Walkthrough Video" style={{ padding: 0, border: 'none', background: 'transparent', minHeight: 'unset' }}>
+          <DemoVideoPlayer />
         </div>
       </section>
 

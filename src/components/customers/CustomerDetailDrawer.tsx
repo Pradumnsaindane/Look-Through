@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   X, 
   Building2, 
@@ -25,9 +25,7 @@ export const CustomerDetailDrawer: React.FC = () => {
   const { 
     selectedCustomer, 
     setSelectedCustomer, 
-    openAIActionModal,
-    markInvoicePaid,
-    sendInvoiceReminder
+    openAIActionModal
   } = useBusiness();
 
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'invoices' | 'deals' | 'activity' | 'notes'>('overview');
@@ -37,20 +35,31 @@ export const CustomerDetailDrawer: React.FC = () => {
 
   const c = selectedCustomer;
   const customerInvoices = profile?.invoices || [];
+  const openCustomerInvoices = customerInvoices.filter(invoice => invoice.status === 'pending' || invoice.status === 'overdue');
+  const openInvoiceAmount = openCustomerInvoices.reduce((total, invoice) => total + invoice.amount, 0);
   const customerDeals = profile?.deals || [];
   const customerContacts = profile?.contacts || [];
   const customerEvents = profile?.activity || [];
+
+  useEffect(() => {
+    if (!selectedCustomer) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedCustomer(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedCustomer, setSelectedCustomer]);
 
   const handleDraftAIFollowup = () => {
     openAIActionModal({
       title: `Draft Follow-Up for ${c.name}`,
       level: 3,
-      source: 'CRM Relationship Copilot',
-      description: `Customer has health score of ${c.healthScore}%. Last interaction was ${c.lastActivity}. Suggested next touchpoint prepared.`,
+      source: 'Customer profile',
+      description: 'Preview only. Add verified context before sending; no message will be sent.',
       actionDraft: {
-        recipient: `${c.name} <${c.email}>`,
-        subject: `Update from Apex Global Corp — Strategic Review`,
-        content: `Hi ${c.name.split(' ')[0]},\n\nHope your week is going great. I wanted to follow up on our ongoing initiatives and ensure your team has everything required for the upcoming deliverables.\n\nLet me know if there's any area where our team can accelerate your timeline.\n\nBest regards,\nPradumn Saindane · Apex Global`,
+        recipient: c.email || c.name,
+        subject: `Follow-up draft for ${c.name}`,
+        content: `Draft follow-up for ${c.name}. Add verified context before sending. No message has been sent.`,
         payloadType: 'customer_followup',
         targetId: c.id
       }
@@ -58,10 +67,13 @@ export const CustomerDetailDrawer: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex justify-end animate-in fade-in duration-150">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex justify-end animate-in fade-in duration-150" onClick={() => setSelectedCustomer(null)}>
       <div 
         className="w-full max-w-2xl bg-slate-900 border-l border-slate-800 h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="customer-drawer-title"
       >
         {/* Profile Header */}
         <div className="p-6 border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
@@ -72,7 +84,7 @@ export const CustomerDetailDrawer: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-slate-100">{c.name}</h2>
+                  <h2 id="customer-drawer-title" className="text-xl font-bold text-slate-100">{c.name}</h2>
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
                     c.status === 'Active' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
                     c.status === 'Attention' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
@@ -81,16 +93,17 @@ export const CustomerDetailDrawer: React.FC = () => {
                     {c.status}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">{c.company} · {c.industry}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{c.company !== c.name ? c.company : 'Company not separately specified'} · {c.industry || 'Industry not provided'}</p>
                 <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
-                  <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-slate-500" /> {c.email}</span>
-                  <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-slate-500" /> {c.phone}</span>
+                  <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-slate-500" /> {c.email || 'Email not provided'}</span>
+                  <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-slate-500" /> {c.phone || 'Phone not provided'}</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => setSelectedCustomer(null)}
+              aria-label="Close customer details"
               className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -98,49 +111,35 @@ export const CustomerDetailDrawer: React.FC = () => {
           </div>
 
           {/* Customer Health Gauge Card */}
-          <div className="mt-5 p-4 rounded-xl bg-slate-950/80 border border-slate-800/80 grid grid-cols-4 gap-3">
+          <div className="mt-5 p-4 rounded-xl bg-slate-950/80 border border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <div className="text-[11px] uppercase font-bold tracking-wider text-slate-400 mb-1">Health Score</div>
               <div className="flex items-center gap-2">
-                <div className={`text-xl font-bold font-mono ${
-                  c.healthScore >= 80 ? 'text-emerald-400' :
-                  c.healthScore >= 60 ? 'text-amber-400' : 'text-rose-400'
-                }`}>
-                  {c.healthScore}%
-                </div>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {c.healthScore >= 80 ? 'Optimal' : c.healthScore >= 60 ? 'Moderate' : 'At Risk'}
-                </span>
-              </div>
-              <div className="w-full bg-slate-800 rounded-full h-1.5 mt-1.5 overflow-hidden">
-                <div 
-                  className={`h-full rounded-full ${
-                    c.healthScore >= 80 ? 'bg-emerald-500' :
-                    c.healthScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'
-                  }`}
-                  style={{ width: `${c.healthScore}%` }}
-                />
-              </div>
+              <div className="text-xl font-bold font-mono text-slate-300">{c.healthScore == null ? 'Not available' : `${c.healthScore}%`}</div>
+            </div>
+            {c.healthScore != null && <div className="w-full bg-slate-800 rounded-full h-1.5 mt-1.5 overflow-hidden">
+              <div className="h-full rounded-full bg-blue-500" style={{ width: `${c.healthScore}%` }} />
+            </div>}
             </div>
 
             <div>
               <div className="text-[11px] uppercase font-bold tracking-wider text-slate-400 mb-1">Total Revenue</div>
-              <div className="text-xl font-bold font-mono text-slate-100">{c.formattedRevenue}</div>
-              <div className="text-[10px] text-emerald-400 font-medium">Lifetime value</div>
+              <div className="text-xl font-bold font-mono text-slate-100">{c.formattedRevenue || 'Not available'}</div>
+              <div className="text-[10px] text-slate-400 font-medium">Revenue data</div>
             </div>
 
             <div>
               <div className="text-[11px] uppercase font-bold tracking-wider text-slate-400 mb-1">Open Invoices</div>
-              <div className={`text-xl font-bold font-mono ${c.openInvoicesAmount > 0 ? 'text-amber-400' : 'text-slate-100'}`}>
-                {c.openInvoicesAmount > 0 ? `₹${(c.openInvoicesAmount / 1000).toFixed(0)}k` : '₹0'}
+              <div className={`text-xl font-bold font-mono ${openInvoiceAmount > 0 ? 'text-amber-400' : 'text-slate-100'}`}>
+                {profileError ? 'Unavailable' : profile ? `₹${openInvoiceAmount.toLocaleString('en-IN')}` : 'Loading…'}
               </div>
-              <div className="text-[10px] text-slate-400 font-medium">{c.openInvoicesCount} pending invoices</div>
+              <div className="text-[10px] text-slate-400 font-medium">{profileError ? 'Invoice data unavailable' : profile ? `${openCustomerInvoices.length} open invoices` : 'Invoice data loading'}</div>
             </div>
 
             <div>
               <div className="text-[11px] uppercase font-bold tracking-wider text-slate-400 mb-1">Last Touch</div>
-              <div className="text-xl font-bold text-slate-100">{c.lastActivity}</div>
-              <div className="text-[10px] text-slate-400 font-medium">Auto-logged</div>
+              <div className="text-xl font-bold text-slate-100">{c.lastActivity || 'Not available'}</div>
+              <div className="text-[10px] text-slate-400 font-medium">Activity data</div>
             </div>
           </div>
         </div>
@@ -170,15 +169,15 @@ export const CustomerDetailDrawer: React.FC = () => {
             <div className="flex items-center gap-3">
               <Sparkles className="w-5 h-5 text-blue-400 shrink-0" />
               <div>
-                <h4 className="text-xs font-bold text-slate-100">AI Relationship Copilot</h4>
-                <p className="text-xs text-slate-300">Prepare follow-up message with customized account context.</p>
+                <h4 className="text-xs font-bold text-slate-100">Follow-up draft preview</h4>
+                <p className="text-xs text-slate-300">Uses the saved customer name only. Add verified context before sending.</p>
               </div>
             </div>
             <button
               onClick={handleDraftAIFollowup}
               className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md transition-all shrink-0"
             >
-              Draft Email
+              Preview draft
             </button>
           </div>
 
@@ -233,22 +232,6 @@ export const CustomerDetailDrawer: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="font-mono font-bold text-sm text-slate-100">{inv.formattedAmount}</span>
-                          {inv.status === 'overdue' && (
-                            <button
-                              onClick={() => sendInvoiceReminder(inv.id)}
-                              className="text-[11px] px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"
-                            >
-                              Remind
-                            </button>
-                          )}
-                          {inv.status !== 'paid' && (
-                            <button
-                              onClick={() => markInvoicePaid(inv.id)}
-                              className="text-[11px] px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30"
-                            >
-                              Mark Paid
-                            </button>
-                          )}
                         </div>
                       </div>
                     ))}
@@ -260,7 +243,7 @@ export const CustomerDetailDrawer: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pipeline Opportunities</h4>
-                  <span className="text-xs text-slate-400 font-mono">{customerDeals.length} active</span>
+                  <span className="text-xs text-slate-400 font-mono">{customerDeals.length} records</span>
                 </div>
                 <div className="space-y-2">
               {customerDeals.length === 0 ? (
@@ -268,8 +251,8 @@ export const CustomerDetailDrawer: React.FC = () => {
               ) : customerDeals.map(deal => (
                 <div key={deal.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-slate-200 text-xs">{deal.title}</div>
-                        <div className="text-[11px] text-slate-400">Stage: <strong className="text-blue-400 uppercase">{deal.stage}</strong> · {deal.probability}% win probability</div>
+                        <div className="font-semibold text-slate-200 text-xs">{deal.title || 'Untitled deal'}</div>
+                        <div className="text-[11px] text-slate-400">Stage: <strong className="text-blue-400 uppercase">{deal.stage}</strong> · {deal.probability == null ? 'Win probability not set' : `${deal.probability}% win probability`}</div>
                       </div>
                       <span className="font-mono font-bold text-sm text-slate-100">{deal.formattedValue}</span>
                     </div>
@@ -288,6 +271,7 @@ export const CustomerDetailDrawer: React.FC = () => {
                   {note}
                 </div>
               ))}
+              {c.notes.length === 0 && <p className="rounded-xl border border-dashed border-slate-700 p-4 text-xs text-slate-400">No notes are available for this customer.</p>}
             </div>
           )}
 
@@ -305,6 +289,7 @@ export const CustomerDetailDrawer: React.FC = () => {
                   </div>
 
                   <div className="border-t border-slate-850 pt-2 space-y-1">
+                    {inv.items.length === 0 && <p className="text-xs text-slate-400">Line-item details are not available.</p>}
                     {inv.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between text-xs text-slate-400">
                         <span>{item.description} (x{item.quantity})</span>
@@ -320,6 +305,7 @@ export const CustomerDetailDrawer: React.FC = () => {
           {/* SubTab: Deals */}
           {activeSubTab === 'deals' && (
             <div className="space-y-3">
+              {customerDeals.length === 0 && <p className="rounded-xl border border-dashed border-slate-700 p-4 text-xs text-slate-400">No deals are available for this customer.</p>}
               {customerDeals.map(deal => (
                 <div key={deal.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="flex items-center justify-between">
@@ -328,8 +314,8 @@ export const CustomerDetailDrawer: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-400">
                     <span>Stage: <strong className="text-blue-400 uppercase">{deal.stage}</strong></span>
-                    <span>Close Date: {deal.expectedCloseDate}</span>
-                    <span>Owner: {deal.assignedTo}</span>
+                    <span>Close Date: {deal.expectedCloseDate || 'Not set'}</span>
+                    <span>Owner: {deal.assignedTo || 'Not assigned'}</span>
                   </div>
                 </div>
               ))}

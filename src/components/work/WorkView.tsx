@@ -11,27 +11,58 @@ import {
   IndianRupee, 
   Briefcase, 
   FileText,
-  Layers,
   Sparkles
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { useBusiness } from '../../context/BusinessContext';
 import { Task } from '../../types';
 import { updatePersistedTask, usePersistedTasks } from './tasksApi';
 
 export const WorkView: React.FC = () => {
   const { 
-    tasks, 
-    completeTask, 
+    tasks: localTasks,
+    completeTask,
+    addToast,
     setIsCreateModalOpen,
     workSubTab,
     setWorkSubTab
   } = useBusiness();
 
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'critical' | 'high' | 'medium' | 'low'>('all');
+  const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
   const persisted = usePersistedTasks();
-  const liveTasks: Task[] = (persisted.data || []).map(task => ({ id: task.id, title: task.title, description: '', priority: task.priority === 'urgent' ? 'critical' : task.priority, status: task.status === 'done' ? 'completed' : task.status, dueDate: task.due_at ? new Date(task.due_at).toLocaleDateString('en-IN') : 'No due date', assignedTo: task.assignee_id || 'Unassigned' } as Task));
-  const displayedTasks = persisted.data ? liveTasks : tasks;
+  const liveTasks: Task[] = (persisted.data || []).filter(task => task.status !== 'cancelled').map(task => ({
+    id: task.id,
+    title: task.title,
+    description: '',
+    priority: task.priority === 'urgent' ? 'critical' : task.priority,
+    status: task.status === 'done' ? 'completed' : task.status,
+    dueDate: task.due_at ? new Date(task.due_at).toLocaleDateString('en-IN') : 'No due date',
+    assignedTo: task.assignee_id || 'Unassigned',
+  }));
+  const liveTaskIds = new Set(liveTasks.map(task => task.id));
+  const localOnlyTasks = localTasks.filter(task => !liveTaskIds.has(task.id));
+  const displayedTasks = [...liveTasks, ...localOnlyTasks];
+
+  const toggleTask = async (task: Task) => {
+    if (!liveTaskIds.has(task.id)) {
+      completeTask(task.id);
+      return;
+    }
+    setBusyTaskId(task.id);
+    try {
+      await updatePersistedTask(task.id, { status: task.status === 'completed' ? 'todo' : 'done' });
+      await persisted.mutate();
+      addToast({ type: 'success', title: 'Task updated', description: 'The task status was saved to your workspace.' });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Task was not updated',
+        description: error instanceof Error ? error.message : 'The task status could not be saved.',
+      });
+    } finally {
+      setBusyTaskId(null);
+    }
+  };
 
   const filteredTasks = displayedTasks.filter(t => {
     if (priorityFilter === 'all') return true;
@@ -87,23 +118,14 @@ export const WorkView: React.FC = () => {
         </div>
       </div>
 
-      {/* Outcome Linkage Philosophy Explainer Banner */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/40 via-indigo-950/40 to-slate-900 border border-blue-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold">
-            <Layers className="w-4 h-4" />
-          </div>
           <div>
-            <h4 className="text-xs font-bold text-slate-100">Outcome-Linked Work Model</h4>
+            <h4 className="text-xs font-bold text-slate-100">Workspace task list</h4>
             <p className="text-xs text-slate-300">
-              Tasks in Business OS are tied to commercial results: 
-              <span className="font-mono text-blue-300 ml-1">Task → Customer → Deal → Invoice → Revenue</span>
+              Organization tasks are saved to the workspace service. Quick-entry tasks are marked browser-only.
             </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-          <span className="text-emerald-400 font-bold">₹10.5L</span> linked to active tasks
         </div>
       </div>
 
@@ -126,6 +148,11 @@ export const WorkView: React.FC = () => {
 
       {/* Tasks List with Visual Outcome Chains */}
       <div className="space-y-3.5">
+        {filteredTasks.length === 0 && (
+          <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/60 p-8 text-center text-sm text-slate-400">
+            {displayedTasks.length === 0 ? 'No saved tasks yet.' : 'No tasks match this priority filter.'}
+          </div>
+        )}
         {filteredTasks.map(task => {
           const isDone = task.status === 'completed';
 
@@ -141,7 +168,10 @@ export const WorkView: React.FC = () => {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3.5 flex-1">
                   <button
-                    onClick={async () => { if (persisted.data) { await updatePersistedTask(task.id, { status: 'done' }); await persisted.mutate(); } else completeTask(task.id); }}
+                    onClick={() => void toggleTask(task)}
+                    disabled={busyTaskId === task.id || (!liveTaskIds.has(task.id) && isDone)}
+                    aria-label={`${isDone ? 'Reopen' : 'Complete'} task ${task.title}`}
+                    aria-pressed={isDone}
                     className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center border transition-all shrink-0 ${
                       isDone
                         ? 'bg-emerald-500 border-emerald-500 text-white'
@@ -156,6 +186,9 @@ export const WorkView: React.FC = () => {
                       <h3 className={`text-sm font-bold ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}`}>
                         {task.title}
                       </h3>
+                      {!liveTaskIds.has(task.id) && (
+                        <span className="text-[10px] text-slate-400">Browser-only</span>
+                      )}
                       <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${
                         task.priority === 'critical' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' :
                         task.priority === 'high' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :

@@ -32,6 +32,16 @@ interface TeamMember {
   status: string;
 }
 
+function isTeamMember(value: unknown): value is TeamMember {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const member = value as Record<string, unknown>;
+  return typeof member.id === 'string'
+    && typeof member.name === 'string'
+    && typeof member.role === 'string'
+    && typeof member.email === 'string'
+    && typeof member.status === 'string';
+}
+
 const SETTINGS_STORAGE_KEY = 'lookthrough_settings';
 const TEAM_STORAGE_KEY = 'lookthrough_team_members';
 
@@ -56,26 +66,38 @@ export const SettingsView: React.FC = () => {
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('Sales Director');
   const [showAddMember, setShowAddMember] = useState(false);
+  const [storageMessage, setStorageMessage] = useState<string | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved) as Partial<WorkspaceSettings>;
-        if (parsed.companyName) setCompanyName(parsed.companyName);
-        if (parsed.taxId) setTaxId(parsed.taxId);
-        if (parsed.aiAutonomyLevel) setAiAutonomyLevel(parsed.aiAutonomyLevel);
-        if (parsed.anomalySensitivity) setAnomalySensitivity(parsed.anomalySensitivity);
+        const parsed: unknown = JSON.parse(saved);
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Stored preferences are not a valid object.');
+        }
+        const savedPreferences = parsed as Record<string, unknown>;
+        if (typeof savedPreferences.companyName === 'string') setCompanyName(savedPreferences.companyName);
+        if (typeof savedPreferences.taxId === 'string') setTaxId(savedPreferences.taxId);
+        if (typeof savedPreferences.aiAutonomyLevel === 'string') setAiAutonomyLevel(savedPreferences.aiAutonomyLevel);
+        if (typeof savedPreferences.anomalySensitivity === 'string') setAnomalySensitivity(savedPreferences.anomalySensitivity);
       }
     } catch {
-      // ignore JSON parse error
+      setStorageMessage('Saved preferences could not be read. Check this browser’s local storage.');
     }
 
     try {
       const savedTeam = localStorage.getItem(TEAM_STORAGE_KEY);
       if (savedTeam) {
-        setTeamMembers(JSON.parse(savedTeam));
+        const parsed: unknown = JSON.parse(savedTeam);
+        if (!Array.isArray(parsed) || !parsed.every(isTeamMember)) {
+          throw new Error('Stored team list is not valid.');
+        }
+        setTeamMembers(parsed.map(member => ({
+          ...member,
+          status: member.id === 'owner' ? 'Signed in' : 'Local entry',
+        })));
       } else {
         setTeamMembers([
           {
@@ -83,12 +105,12 @@ export const SettingsView: React.FC = () => {
             name: currentUserName,
             email: currentUserEmail,
             role: 'Owner / Superadmin',
-            status: 'Active'
+            status: 'Signed in'
           }
         ]);
       }
     } catch {
-      // ignore
+      setStorageMessage('The local team list could not be read. Check this browser’s local storage.');
     }
   }, [currentUserName, currentUserEmail]);
 
@@ -102,14 +124,18 @@ export const SettingsView: React.FC = () => {
     };
     try {
       localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    } catch {
-      // ignore
+      setStorageMessage(null);
+      addToast({
+        type: 'info',
+        title: 'Preferences saved locally',
+        description: 'Stored in this browser only. These values do not update organization or automation policies.',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Browser storage is unavailable.';
+      setStorageMessage(`Preferences were not saved: ${message}`);
+      addToast({ type: 'error', title: 'Preferences not saved', description: message });
+      return;
     }
-    addToast({
-      type: 'success',
-      title: 'Settings Saved',
-      description: 'Organization parameters and AI guardrail policies updated successfully.',
-    });
   };
 
   const handleAddMember = (e: React.FormEvent) => {
@@ -120,22 +146,26 @@ export const SettingsView: React.FC = () => {
       name: newMemberName.trim() || newMemberEmail.split('@')[0],
       email: newMemberEmail.trim(),
       role: newMemberRole,
-      status: 'Active'
+      status: 'Local entry'
     };
     const updated = [...teamMembers, member];
-    setTeamMembers(updated);
     try {
       localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // ignore
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Browser storage is unavailable.';
+      setStorageMessage(`The team list was not saved: ${message}`);
+      addToast({ type: 'error', title: 'List entry not saved', description: message });
+      return;
     }
+    setTeamMembers(updated);
+    setStorageMessage(null);
     setNewMemberName('');
     setNewMemberEmail('');
     setShowAddMember(false);
     addToast({
-      type: 'success',
-      title: 'Team Member Added',
-      description: `${member.name} has been granted ${member.role} privileges.`,
+      type: 'info',
+      title: 'Added to local list',
+      description: `${member.name} appears in this browser’s list only. No invitation was sent and no access was granted.`,
     });
   };
 
@@ -149,16 +179,20 @@ export const SettingsView: React.FC = () => {
       return;
     }
     const updated = teamMembers.filter(m => m.id !== id);
-    setTeamMembers(updated);
     try {
       localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // ignore
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Browser storage is unavailable.';
+      setStorageMessage(`The team list was not saved: ${message}`);
+      addToast({ type: 'error', title: 'List entry not removed', description: message });
+      return;
     }
+    setTeamMembers(updated);
+    setStorageMessage(null);
     addToast({
       type: 'info',
-      title: 'Member Removed',
-      description: 'Role access has been revoked.',
+      title: 'Removed from local list',
+      description: 'No organization access was changed.',
     });
   };
 
@@ -167,12 +201,17 @@ export const SettingsView: React.FC = () => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-extrabold text-slate-100 tracking-tight">
-          System Configuration & Governance
+          Workspace preferences
         </h1>
         <p className="text-xs text-slate-400">
-          Manage organizational profile, role-based access control (RBAC), and AI autonomy guardrails.
+          These values and the team list are stored in this browser. They do not change shared organization data, access, billing, or AI execution policies.
         </p>
       </div>
+      {storageMessage && (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200" role="alert">
+          {storageMessage}
+        </p>
+      )}
 
       {/* Settings Navigation Tabs */}
       <div className="flex border-b border-slate-800 bg-slate-900/60 rounded-xl p-1 gap-1 overflow-x-auto">
@@ -288,7 +327,7 @@ export const SettingsView: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">AI Policy & Automation Guardrails</h3>
-                <p className="text-xs text-slate-400">Configure permission boundaries for automated tasks</p>
+                <p className="text-xs text-slate-400">Preference only; these choices are not applied to automated tasks.</p>
               </div>
               <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">
                 Safety First
@@ -327,7 +366,7 @@ export const SettingsView: React.FC = () => {
               type="submit"
               className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
             >
-              Update AI Governance Rules
+              Save Local Preferences
             </button>
           </div>
         </form>
@@ -338,15 +377,15 @@ export const SettingsView: React.FC = () => {
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Team Roles & Permissions (RBAC)</h3>
-              <p className="text-xs text-slate-400">Strict permission gates: READ → SUGGEST → PREPARE → APPROVE → EXECUTE</p>
+              <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Local team list</h3>
+              <p className="text-xs text-slate-400">Entries are not invitations and do not grant or revoke access.</p>
             </div>
             <button
               onClick={() => setShowAddMember(prev => !prev)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Invite Member</span>
+              <span>Add to list</span>
             </button>
           </div>
 
@@ -392,7 +431,7 @@ export const SettingsView: React.FC = () => {
                   type="submit"
                   className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold cursor-pointer"
                 >
-                  Send Invite
+                  Add to list
                 </button>
               </div>
             </form>
@@ -430,20 +469,20 @@ export const SettingsView: React.FC = () => {
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Business OS Enterprise Tier</h3>
-              <p className="text-xs text-slate-400">Unlimited connectors, autonomous intelligence engine, team seats</p>
+              <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Billing is not configured</h3>
+              <p className="text-xs text-slate-400">No subscription or payment provider is connected to this workspace.</p>
             </div>
             <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              Active Tier
+              Not configured
             </span>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
             <div>
-              <div className="font-semibold text-slate-200">Billing Cycle: Annual Subscription</div>
-              <div className="text-slate-400">Database & Auth managed via Neon Cloud & Serverless Infrastructure</div>
+              <div className="font-semibold text-slate-200">No billing cycle</div>
+              <div className="text-slate-400">Connect a billing service to manage a subscription.</div>
             </div>
-            <span className="font-mono font-bold text-sm text-slate-100">Standard License</span>
+            <span className="font-mono font-bold text-sm text-slate-100">No active plan</span>
           </div>
         </div>
       )}

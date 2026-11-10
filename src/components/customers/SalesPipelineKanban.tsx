@@ -2,10 +2,6 @@ import React from 'react';
 import { 
   AlertTriangle, 
   ArrowRight, 
-  Sparkles, 
-  Clock, 
-  User, 
-  CheckCircle2, 
   DollarSign,
   Briefcase
 } from 'lucide-react';
@@ -35,14 +31,14 @@ export const SalesPipelineKanban: React.FC = () => {
 
   const handleNudgeStaleDeal = (deal: Deal) => {
     openAIActionModal({
-      title: `Nudge Stale Opportunity: ${deal.customerName}`,
+      title: `Review follow-up draft for ${deal.customerName || deal.title}`,
       level: 3,
-      source: 'Sales Velocity Copilot',
-      description: `Opportunity (${deal.formattedValue}) has had no recorded team activity for ${deal.lastContactDaysAgo} days.`,
+      source: 'Browser-local deal record',
+      description: `This is a draft preview for ${deal.title} (${deal.formattedValue}). ${deal.lastContactDaysAgo == null ? 'No activity date is available.' : `No activity has been recorded for ${deal.lastContactDaysAgo} days.`} No message will be sent.`,
       actionDraft: {
-        recipient: `${deal.customerName} Executive Team`,
+        recipient: deal.customerName || undefined,
         subject: `Follow-up: ${deal.title} — Next Steps`,
-        content: `Hi Team,\n\nI wanted to check in regarding the proposal we shared for ${deal.title}.\n\nDo you have any questions on the delivery roadmap or budget breakdown? We have slots open this month.\n\nBest,\n${deal.assignedTo}`,
+        content: `Draft follow-up for ${deal.title}. No message will be sent.\n\n${deal.assignedTo ? `Owner: ${deal.assignedTo}` : ''}`,
         payloadType: 'deal_nudge',
         targetId: deal.id,
         amount: deal.formattedValue
@@ -52,6 +48,9 @@ export const SalesPipelineKanban: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <p className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-400" role="note">
+        Deal records and stage changes on this board are stored in this browser; no CRM sync is active.
+      </p>
       {/* Top Pipeline Stats Banner */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {stages.slice(0, 4).map(s => {
@@ -108,7 +107,7 @@ export const SalesPipelineKanban: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-300 font-semibold">{deal.customerName}</span>
+                        <span className="text-xs text-slate-300 font-semibold">{deal.customerName || 'Customer name unavailable'}</span>
                         <span className="font-mono font-bold text-xs text-emerald-400">{deal.formattedValue}</span>
                       </div>
 
@@ -117,20 +116,20 @@ export const SalesPipelineKanban: React.FC = () => {
                         <div className="p-2 rounded-lg bg-amber-950/30 border border-amber-500/30 flex items-center justify-between">
                           <div className="flex items-center gap-1.5 text-[10px] text-amber-300">
                             <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
-                            <span>No activity for {deal.lastContactDaysAgo}d</span>
+                            <span>{deal.lastContactDaysAgo == null ? 'No activity history' : `No activity for ${deal.lastContactDaysAgo}d`}</span>
                           </div>
                           <button
                             onClick={() => handleNudgeStaleDeal(deal)}
                             className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold hover:bg-amber-500/30 transition-colors"
                           >
-                            Nudge
+                            Preview draft
                           </button>
                         </div>
                       )}
 
                       {/* Stage Progression Buttons */}
                       <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                        <span className="text-[10px] font-mono">{deal.probability}% win prob</span>
+                        <span className="text-[10px] font-mono">{deal.probability == null ? 'Win probability not set' : `${deal.probability}% win probability`}</span>
                         
                         {stage.key !== 'won' && (
                           <button
@@ -147,7 +146,7 @@ export const SalesPipelineKanban: React.FC = () => {
                             }}
                             className="flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 font-semibold"
                           >
-                            <span>Advance</span>
+                            <span>Advance locally</span>
                             <ArrowRight className="w-3 h-3" />
                           </button>
                         )}

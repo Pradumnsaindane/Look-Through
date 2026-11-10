@@ -21,12 +21,12 @@ export const CommandMenu: React.FC = () => {
     invoices, 
     deals, 
     tasks, 
-    expenses,
     setSelectedCustomer,
     setActiveTab,
     setFinanceSubTab,
     setCustomerSubTab,
-    executeNaturalLanguageAction
+    executeNaturalLanguageAction,
+    addToast
   } = useBusiness();
 
   const [query, setQuery] = useState('');
@@ -58,11 +58,9 @@ export const CommandMenu: React.FC = () => {
   if (!isCommandMenuOpen) return null;
 
   const q = query.trim().toLowerCase();
+  const canQuickEnter = /^task:\s*\S/i.test(query.trim());
 
-  // Natural language query interpretations
   const isOverdueQuery = q.includes('overdue') || q.includes('unpaid');
-  const isAcmeQuery = q.includes('acme');
-  const isExpenseQuery = q.includes('expense');
   const isDealQuery = q.includes('deal') || q.includes('pipeline');
 
   // Filtered lists
@@ -99,37 +97,52 @@ export const CommandMenu: React.FC = () => {
     setIsCommandMenuOpen(false);
   };
 
-  const handleRunAICommand = () => {
+  const handleRunQuickEntry = () => {
     if (!query) return;
-    executeNaturalLanguageAction(query);
+    const handled = executeNaturalLanguageAction(query);
+    if (!handled) {
+      addToast({
+        type: 'info',
+        title: 'No quick action available',
+        description: 'This command is not supported. No changes were made.',
+      });
+    }
     setIsCommandMenuOpen(false);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-20 px-4 animate-in fade-in duration-150">
+    <div
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-20 px-4 animate-in fade-in duration-150"
+      onClick={() => setIsCommandMenuOpen(false)}
+    >
       <div 
         className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search and command palette"
       >
         {/* Search Input */}
         <div className="p-4 border-b border-slate-800 flex items-center gap-3 bg-slate-950/50">
           <Search className="w-5 h-5 text-blue-400 shrink-0" />
           <input
             ref={inputRef}
+            aria-label="Search workspace records or enter a Task: title quick command"
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && query.length > 3) {
-                handleRunAICommand();
+              if (e.key === 'Enter' && canQuickEnter) {
+                handleRunQuickEntry();
               }
             }}
-            placeholder="Search customers, invoices, tasks, or type natural requests..."
+            placeholder="Search records, or enter Task: a title"
             className="w-full bg-transparent text-slate-100 placeholder:text-slate-500 text-base focus:outline-none"
           />
           {query && (
             <button 
               onClick={() => setQuery('')}
+              aria-label="Clear search"
               className="p-1 rounded-md text-slate-400 hover:text-white"
             >
               <X className="w-4 h-4" />
@@ -140,23 +153,23 @@ export const CommandMenu: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Intent Suggestion Banner */}
-        {query.length > 3 && (
-          <div 
-            onClick={handleRunAICommand}
-            className="px-4 py-2.5 bg-gradient-to-r from-blue-950/80 via-indigo-950/80 to-purple-950/80 border-b border-blue-500/20 flex items-center justify-between cursor-pointer hover:bg-blue-900/40 transition-colors"
+        {canQuickEnter && (
+          <button
+            type="button"
+            onClick={handleRunQuickEntry}
+            className="w-full px-4 py-2.5 bg-slate-800 border-b border-slate-700 flex items-center justify-between text-left hover:bg-slate-700 transition-colors"
           >
-            <div className="flex items-center gap-2 text-xs text-blue-200">
-              <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+            <div className="flex items-center gap-2 text-xs text-slate-200">
+              <Sparkles className="w-4 h-4 text-blue-400" />
               <span>
-                Interpret with AI: <strong className="text-white">"{query}"</strong>
+                Try supported quick entry: <strong className="text-white">"{query}"</strong>
               </span>
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-blue-400 font-medium">
-              <span>Execute Action</span>
+            <div className="flex items-center gap-1 text-[11px] text-blue-300 font-medium">
+              <span>Add local draft</span>
               <ArrowRight className="w-3 h-3" />
             </div>
-          </div>
+          </button>
         )}
 
         {/* Results List */}
@@ -175,17 +188,17 @@ export const CommandMenu: React.FC = () => {
                   <IndianRupee className="w-4 h-4 text-rose-400" />
                   <div>
                     <div className="font-semibold text-slate-200 text-xs">Show Overdue Invoices</div>
-                    <div className="text-[11px] text-slate-400">4 invoices · ₹84,000 pending</div>
+                    <div className="text-[11px] text-slate-400">Filter the current invoice list</div>
                   </div>
                 </button>
                 <button
-                  onClick={() => { setQuery('Acme'); }}
+                  onClick={() => { setQuery('deal'); }}
                   className="p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-left flex items-center gap-3 transition-colors"
                 >
                   <Users className="w-4 h-4 text-blue-400" />
                   <div>
-                    <div className="font-semibold text-slate-200 text-xs">Acme Corporation</div>
-                    <div className="text-[11px] text-slate-400">₹4.2L revenue · 2 open deals</div>
+                    <div className="font-semibold text-slate-200 text-xs">Search deals</div>
+                    <div className="text-[11px] text-slate-400">Filter the current deal list</div>
                   </div>
                 </button>
               </div>
@@ -201,10 +214,11 @@ export const CommandMenu: React.FC = () => {
               </div>
               <div className="space-y-1">
                 {filteredCustomers.slice(0, 3).map(c => (
-                  <div
+                  <button
+                    type="button"
                     key={c.id}
                     onClick={() => handleSelectCustomer(c)}
-                    className="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer flex items-center justify-between transition-colors group"
+                    className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 flex items-center justify-between transition-colors group"
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-7 h-7 rounded-lg bg-gradient-to-tr ${c.avatarBg} flex items-center justify-center text-white font-bold text-xs`}>
@@ -214,11 +228,11 @@ export const CommandMenu: React.FC = () => {
                         <div className="font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">
                           {c.name}
                         </div>
-                        <div className="text-xs text-slate-400">{c.industry}</div>
+                        <div className="text-xs text-slate-400">{c.industry || 'Industry not provided'}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-mono font-medium text-slate-200">{c.formattedRevenue}</div>
+                      <div className="font-mono font-medium text-slate-200">{c.formattedRevenue || 'Revenue not available'}</div>
                       <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                         c.status === 'Active' ? 'bg-emerald-500/20 text-emerald-300' :
                         c.status === 'Attention' ? 'bg-amber-500/20 text-amber-300' :
@@ -227,7 +241,7 @@ export const CommandMenu: React.FC = () => {
                         {c.status}
                       </span>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -242,10 +256,11 @@ export const CommandMenu: React.FC = () => {
               </div>
               <div className="space-y-1">
                 {filteredInvoices.slice(0, 3).map(inv => (
-                  <div
+                  <button
+                    type="button"
                     key={inv.id}
                     onClick={handleSelectInvoice}
-                    className="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer flex items-center justify-between transition-colors group"
+                    className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 flex items-center justify-between transition-colors group"
                   >
                     <div>
                       <div className="font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">
@@ -263,7 +278,7 @@ export const CommandMenu: React.FC = () => {
                         {inv.status}
                       </span>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -278,26 +293,27 @@ export const CommandMenu: React.FC = () => {
               </div>
               <div className="space-y-1">
                 {filteredDeals.slice(0, 3).map(deal => (
-                  <div
+                  <button
+                    type="button"
                     key={deal.id}
                     onClick={() => {
                       setActiveTab('customers');
                       setCustomerSubTab('deals');
                       setIsCommandMenuOpen(false);
                     }}
-                    className="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer flex items-center justify-between transition-colors group"
+                    className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 flex items-center justify-between transition-colors group"
                   >
                     <div>
                       <div className="font-semibold text-slate-200 group-hover:text-purple-400 transition-colors">
                         {deal.title}
                       </div>
-                      <div className="text-xs text-slate-400">{deal.customerName} · Stage: {deal.stage}</div>
+                      <div className="text-xs text-slate-400">{deal.customerName || 'Customer name unavailable'} · Stage: {deal.stage}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-mono font-semibold text-slate-100">{deal.formattedValue}</div>
-                      <div className="text-[10px] text-slate-400">{deal.probability}% win prob</div>
+                      <div className="text-[10px] text-slate-400">{deal.probability == null ? 'Win probability not set' : `${deal.probability}% win probability`}</div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -312,13 +328,14 @@ export const CommandMenu: React.FC = () => {
               </div>
               <div className="space-y-1">
                 {filteredTasks.slice(0, 3).map(task => (
-                  <div
+                  <button
+                    type="button"
                     key={task.id}
                     onClick={() => {
                       setActiveTab('work');
                       setIsCommandMenuOpen(false);
                     }}
-                    className="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer flex items-center justify-between transition-colors group"
+                    className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 flex items-center justify-between transition-colors group"
                   >
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="font-semibold text-slate-200 group-hover:text-amber-400 transition-colors truncate">
@@ -331,23 +348,27 @@ export const CommandMenu: React.FC = () => {
                     <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
                       {task.priority}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
           )}
+          {query && filteredCustomers.length === 0 && filteredInvoices.length === 0
+            && filteredDeals.length === 0 && filteredTasks.length === 0 && (
+              <p className="rounded-lg border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-400">
+                No matching workspace records. Quick entry supports only “Task: …”.
+              </p>
+            )}
         </div>
 
         {/* Footer */}
         <div className="p-3 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <span className="font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-400">↑↓</span>
-            <span>Navigate</span>
-            <span className="font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-400 ml-2">↵</span>
-            <span>Select / Execute</span>
+            <span className="font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-400">Enter</span>
+            <span>Adds a local task when the query starts with “Task:”</span>
           </div>
           <div className="text-slate-400 text-[11px]">
-            Business OS Global Search & AI Intent Parser
+            Workspace search · local quick commands
           </div>
         </div>
       </div>

@@ -1,31 +1,17 @@
-import React, { useState } from 'react';
-import { 
-  Sparkles, 
-  ShieldCheck, 
-  Bot, 
-  ArrowRight, 
-  AlertTriangle, 
-  TrendingUp, 
-  CheckCircle2, 
-  Sliders, 
-  Zap, 
-  Send,
-  Eye,
-  FileCheck
-} from 'lucide-react';
+import React from 'react';
+import { Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
 import { AIInsight } from '../../types';
 
 export const AIIntelligenceView: React.FC = () => {
-  const { aiInsights, openAIActionModal, aiSubTab, setAISubTab } = useBusiness();
-  const [selectedLevel, setSelectedLevel] = useState<number>(4);
+  const { aiInsights, openAIActionModal } = useBusiness();
 
   const levels = [
     {
       level: 1,
       name: 'READ',
       desc: 'Observation & Telemetry Ingestion',
-      example: '“Your invoice #1019 is 12 days overdue.”',
+      example: '“An invoice is past its due date.”',
       autonomy: 'Passive monitoring',
       badge: 'Zero Risk'
     },
@@ -33,7 +19,7 @@ export const AIIntelligenceView: React.FC = () => {
       level: 2,
       name: 'SUGGEST',
       desc: 'Pattern Synthesis & Recommendation',
-      example: '“You should follow up with Acme Ltd to recover working capital.”',
+      example: '“Consider following up on an account.”',
       autonomy: 'Advisory only',
       badge: 'Informational'
     },
@@ -41,44 +27,44 @@ export const AIIntelligenceView: React.FC = () => {
       level: 3,
       name: 'PREPARE',
       desc: 'Payload & Artifact Generation',
-      example: '“I have prepared a follow-up email with the payment link ready for review.”',
+      example: '“A follow-up draft is ready for review.”',
       autonomy: 'Draft staging',
       badge: 'Staged'
     },
     {
       level: 4,
       name: 'ASK APPROVAL',
-      desc: 'Human Authorization Gate (Current Default)',
-      example: '“Authorize sending this follow-up email to Acme?”',
-      autonomy: 'Explicit confirmation required',
+      desc: 'Illustrative review stage; no approval workflow is wired',
+      example: '“Review this draft. Nothing will be sent.”',
+      autonomy: 'Preview only',
       badge: 'Safe Gate'
     },
     {
       level: 5,
       name: 'EXECUTE',
-      desc: 'Deterministic API Dispatch',
-      example: '“User clicked Approve → Email dispatched via Gmail connector & logged in CRM.”',
-      autonomy: 'Executed upon sign-off',
-      badge: 'Deterministic'
+      desc: 'Unavailable — no action connector is configured',
+      example: 'No external action is executed.',
+      autonomy: 'Not enabled',
+      badge: 'Unavailable'
     },
     {
       level: 6,
       name: 'AUTONOMOUS',
       desc: 'Bounded Policy Automation',
-      example: '“For invoices overdue < ₹20,000, send reminder automatically after 7 days.”',
-      autonomy: 'Pre-approved parameters',
-      badge: 'High Autonomy'
+      example: 'No automation policy is configured.',
+      autonomy: 'Not enabled',
+      badge: 'Unavailable'
     },
   ];
 
-  const handleExecuteInsight = (insight: AIInsight) => {
+  const handleReviewInsight = (insight: AIInsight) => {
     openAIActionModal({
       title: insight.title,
       level: 4,
       source: `AI Intelligence Engine (${insight.type.toUpperCase()})`,
-      description: insight.whyItMatters,
+      description: `${insight.whyItMatters} This draft is preview-only; no external action will be sent.`,
       actionDraft: {
-        recipient: insight.actionPayload.targetName ? `${insight.actionPayload.targetName} Team` : 'Designated Stakeholder',
+        recipient: insight.actionPayload.targetName ? `${insight.actionPayload.targetName} Team` : undefined,
         subject: `Strategic Action: ${insight.title}`,
         content: insight.actionPayload.suggestedContent || insight.suggestedAction,
         payloadType: insight.actionPayload.type,
@@ -101,61 +87,50 @@ export const AIIntelligenceView: React.FC = () => {
             </span>
           </div>
           <h1 className="text-2xl font-extrabold text-slate-100 tracking-tight">
-            AI Intelligence & Permission Governance
+            AI insights and action previews
           </h1>
           <p className="text-xs text-slate-400 max-w-2xl">
-            Not a generic sidebar chatbot. Business OS continuously reads telemetry, identifies operational risks, stages executable actions, and respects owner authority gates.
+            Read-only questions use organization data. Action drafts are previews only; no external execution is configured.
           </p>
         </div>
 
         <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1">
-          <button
-            onClick={() => setAISubTab('insights')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-              aiSubTab === 'insights' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
+          <a href="#ai-insights" className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white">
             Insights & Anomalies
-          </button>
-          <button
-            onClick={() => setAISubTab('permissions')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-              aiSubTab === 'permissions' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            6-Level Governance
-          </button>
+          </a>
+          <a href="#ai-framework" className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white">
+            Reference framework
+          </a>
         </div>
       </div>
 
       {/* 6-Level Permission Model Interactive Visualizer */}
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/50 border border-slate-800 shadow-xl space-y-6">
+      <div id="ai-framework" className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/50 border border-slate-800 shadow-xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-indigo-400" />
-              <span>The 6-Level AI Permission Framework</span>
+              <span>Reference permission framework</span>
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Strict progressive boundaries preventing unverified hallucinations from modifying business state.
+              Illustrative only. The current workspace does not enforce these levels or execute actions.
             </p>
           </div>
           <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            Active Guardrail: Level 4 (Ask Approval)
+            Not enforced
           </span>
         </div>
 
         {/* Level Cards Flow */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {levels.map(lvl => {
-            const isCurrent = selectedLevel === lvl.level;
+            const isReference = lvl.level === 4;
             return (
               <div
                 key={lvl.level}
-                onClick={() => setSelectedLevel(lvl.level)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                  isCurrent
-                    ? 'bg-indigo-950/50 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/40'
+                className={`p-4 rounded-xl border transition-colors ${
+                  isReference
+                    ? 'bg-indigo-950/50 border-indigo-500 ring-1 ring-indigo-500/40'
                     : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-950'
                 }`}
               >
@@ -180,7 +155,7 @@ export const AIIntelligenceView: React.FC = () => {
 
                 <div className="text-[10px] text-indigo-300 font-medium flex items-center justify-between">
                   <span>Mode: {lvl.autonomy}</span>
-                  {isCurrent && <span className="font-bold text-emerald-400">Selected</span>}
+                  {isReference && <span className="font-bold text-indigo-300">Reference</span>}
                 </div>
               </div>
             );
@@ -189,16 +164,21 @@ export const AIIntelligenceView: React.FC = () => {
       </div>
 
       {/* Proactive Insights Section */}
-      <div className="space-y-4">
+      <div id="ai-insights" className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-100">Live Proactive AI Insights</h2>
-            <p className="text-xs text-slate-400">Contextual anomaly detection and operational triggers</p>
+            <h2 className="text-lg font-bold text-slate-100">Available AI insights</h2>
+            <p className="text-xs text-slate-400">Insight generation is not connected yet.</p>
           </div>
-          <span className="text-xs text-slate-400 font-mono">{aiInsights.length} active insights</span>
+          <span className="text-xs text-slate-400 font-mono">{aiInsights.length} available</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {aiInsights.length === 0 && (
+            <p className="col-span-full rounded-xl border border-dashed border-slate-700 bg-slate-900/60 p-6 text-sm text-slate-400">
+              No insights are available yet. Read-only business questions are available in the workspace overview.
+            </p>
+          )}
           {aiInsights.map(insight => {
             const severityClass =
               insight.severity === 'warning' ? 'border-amber-500/30 bg-amber-950/10' :
@@ -243,10 +223,10 @@ export const AIIntelligenceView: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => handleExecuteInsight(insight)}
+                  onClick={() => handleReviewInsight(insight)}
                   className="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
                 >
-                  <span>{insight.actionButtonText}</span>
+                  <span>Review draft</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>

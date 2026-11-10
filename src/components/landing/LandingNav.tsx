@@ -68,7 +68,7 @@ export const LandingNav: React.FC<LandingNavProps> = ({ dark = false, onThemeTog
             {dark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <button type="button" className="lp-pill-btn" onClick={() => goTo('/dashboard')}>
-            Open workspace
+            Look workspace
           </button>
           <button
             type="button"
@@ -96,7 +96,7 @@ export const LandingNav: React.FC<LandingNavProps> = ({ dark = false, onThemeTog
             <span aria-hidden="true">→</span>
           </button>
           <button type="button" className="lp-mobile-cta" onClick={() => goTo('/dashboard')}>
-            Open workspace
+            Look workspace
           </button>
         </div>
       )}

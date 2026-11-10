@@ -12,7 +12,7 @@ export const ConnectedSection: React.FC<{ ctx: SectionCtx; dark: boolean; onThem
   const alertCount = ctx.data?.alerts.length;
   return (
     <section id="connected" className="lt-section" aria-labelledby="lt-co-h">
-      <SectionHead eyebrow="Connected workspace" title="Tools, alerts and preferences in one place" body="Manage how Look Through connects to the rest of your stack." />
+      <SectionHead eyebrow="Connected workspace" title="Tools, alerts and preferences in one place" body="Review available connections and manage your personal workspace preferences." />
       <h3 id="lt-co-h" className="lt-sr">Integrations, alerts and settings</h3>
       <div className="lt-grid lt-grid-2">
         <Reveal className="lt-glass lt-glass-hover lt-card"><span className="lt-card-icon" aria-hidden="true"><Plug2 /></span><h3>Integrations</h3>
@@ -34,8 +34,8 @@ export const ConnectedSection: React.FC<{ ctx: SectionCtx; dark: boolean; onThem
           </div>
         </Reveal>
         <Reveal delay={270} className="lt-glass lt-glass-hover lt-card"><span className="lt-card-icon" aria-hidden="true"><Settings /></span><h3>Organization preferences</h3>
-          <p>Workspace-wide configuration and permissions, available to authorized members.</p>
-          <div className="lt-meta"><span className="lt-pill">{authed ? 'Permission-checked' : 'Requires sign in'}</span></div>
+          <p>Settings on this device are stored in this browser. They do not manage organization permissions or subscription status.</p>
+          <div className="lt-meta"><span className="lt-pill">{authed ? 'Browser-local settings' : 'Requires sign in'}</span></div>
           <button className="lt-btn lt-btn-outline lt-btn-sm" style={{ marginTop: 16 }} onClick={() => ctx.openModule('settings')}>Open Settings<ArrowRight /></button>
         </Reveal>
       </div>

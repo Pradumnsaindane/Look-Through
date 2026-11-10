@@ -1,19 +1,9 @@
 import React from 'react';
-import { 
-  Plug2, 
-  CheckCircle2, 
-  RefreshCw, 
-  ArrowRight, 
-  Layers, 
-  ShieldCheck, 
-  Database, 
-  Server,
-  Zap
-} from 'lucide-react';
+import { CheckCircle2, Layers } from 'lucide-react';
 import { useBusiness } from '../../context/BusinessContext';
 
 export const IntegrationsView: React.FC = () => {
-  const { integrations, toggleIntegration } = useBusiness();
+  const { integrations } = useBusiness();
 
   const pipelineSteps = [
     { step: 1, title: 'External System', desc: 'SaaS / Bank / CRM' },
@@ -45,19 +35,18 @@ export const IntegrationsView: React.FC = () => {
               Canonical Ingestion & Normalization Pipeline
             </h2>
           </div>
-          <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Live Sync Active
+          <span className="text-[11px] font-mono text-slate-400 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-full">
+            Not configured
           </span>
         </div>
 
         <p className="text-xs text-slate-300">
-          This canonical model ensures every external system (Stripe, Razorpay, Zoho, QuickBooks) maps into unified business entities (Customer, Deal, Invoice, Expense) without schema fragmentation.
+          This diagram shows the intended data flow. No connector is configured, and no external data is currently syncing.
         </p>
 
         {/* Pipeline Diagram */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-2">
-          {pipelineSteps.map((s, idx) => (
+          {pipelineSteps.map(s => (
             <div key={s.step} className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center relative group">
               <div className="text-[10px] font-mono font-bold text-blue-400 mb-1">Step 0{s.step}</div>
               <div className="font-bold text-xs text-slate-100">{s.title}</div>
@@ -70,7 +59,7 @@ export const IntegrationsView: React.FC = () => {
       {/* Connected Integrations Grid */}
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
-          Managed Connectors ({integrations.length})
+          Available Connectors ({integrations.length})
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -100,7 +89,7 @@ export const IntegrationsView: React.FC = () => {
                         ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                         : 'bg-slate-800 text-slate-400 border-slate-700'
                     }`}>
-                      {isConnected ? 'Connected' : 'Available'}
+                      {isConnected ? 'Connected' : 'Not connected'}
                     </span>
                   </div>
 
@@ -120,19 +109,8 @@ export const IntegrationsView: React.FC = () => {
 
                 <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between">
                   <span className="text-[10px] text-slate-400 font-mono">
-                    {isConnected && int.lastSynced ? `Synced: ${int.lastSynced}` : 'Standby'}
+                    {isConnected && int.lastSynced ? `Synced: ${int.lastSynced}` : 'Setup unavailable'}
                   </span>
-
-                  <button
-                    onClick={() => toggleIntegration(int.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                      isConnected
-                        ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30'
-                    }`}
-                  >
-                    {isConnected ? 'Disconnect' : 'Connect Service'}
-                  </button>
                 </div>
               </div>
             );

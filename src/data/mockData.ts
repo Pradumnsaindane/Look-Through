@@ -1,15 +1,15 @@
-import { 
-  Customer, 
-  Deal, 
-  Invoice, 
-  Expense, 
-  Task, 
-  ActivityEvent, 
-  AIInsight, 
-  OperationalTodayItem, 
-  AlertItem, 
+import {
+  Customer,
+  Deal,
+  Invoice,
+  Expense,
+  Task,
+  ActivityEvent,
+  AIInsight,
+  OperationalTodayItem,
+  AlertItem,
   HealthMetric,
-  IntegrationService 
+  IntegrationService
 } from '../types';
 
 export const INITIAL_HEALTH_METRICS: HealthMetric[] = [

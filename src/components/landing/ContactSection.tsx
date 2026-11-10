@@ -198,15 +198,15 @@ export const ContactSection: React.FC = () => {
         <aside className="lp-contact-aside">
           <div className="lp-contact-card">
             <h3>Direct email</h3>
-            <p>Content coming soon — the published contact address is added once it is confirmed.</p>
+            <p>ellipses303@gmail.com</p>
           </div>
           <div className="lp-contact-card">
             <h3>Response time</h3>
-            <p>Content coming soon — we will publish a support window once the team commits to it.</p>
+            <p>Within 1 - 2 business days</p>
           </div>
           <div className="lp-contact-card">
             <h3>Office locations</h3>
-            <p>Content coming soon — no address is listed until it is verified.</p>
+            <p>Pune, Maharashtra</p>
           </div>
           <div className="lp-contact-card">
             <h3>Prefer to explore first?</h3>

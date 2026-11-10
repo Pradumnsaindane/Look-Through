@@ -18,8 +18,16 @@ export const TodaySection: React.FC<{ ctx: SectionCtx }> = ({ ctx }) => {
 
   const guard = async (key: string, fn: () => Promise<unknown>, okTitle: string) => {
     setBusy(key);
-    try { await fn(); await tasksRes.mutate(); await ctx.mutate(); addToast({ type: 'success', title: okTitle, description: 'Saved to your workspace.' }); }
-    catch (e) { addToast({ type: 'error', title: 'Could not save', description: e instanceof Error ? e.message : 'Try again.' }); }
+    try {
+      await fn();
+      await tasksRes.mutate();
+      await ctx.mutate();
+      addToast({ type: 'success', title: okTitle, description: 'Saved to your workspace.' });
+      return true;
+    } catch (e) {
+      addToast({ type: 'error', title: 'Could not save', description: e instanceof Error ? e.message : 'Try again.' });
+      return false;
+    }
     finally { setBusy(null); }
   };
   const toggle = (id: string, status: string) => guard(id, () => updatePersistedTask(id, { status: status === 'done' ? 'todo' : 'done' }), status === 'done' ? 'Task reopened' : 'Task completed');
@@ -27,7 +35,9 @@ export const TodaySection: React.FC<{ ctx: SectionCtx }> = ({ ctx }) => {
     e.preventDefault();
     const t = title.trim();
     if (!t) return;
-    void guard('new', () => createPersistedTask({ title: t, priority: 'medium' }), 'Task created').then(() => setTitle(''));
+    void guard('new', () => createPersistedTask({ title: t, priority: 'medium' }), 'Task created').then(saved => {
+      if (saved) setTitle('');
+    });
   };
 
   const open = tasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
