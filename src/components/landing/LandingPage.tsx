@@ -4,7 +4,7 @@ import { LandingNav } from './LandingNav';
 import { HeroSection } from './HeroSection';
 import { StorySection } from './StorySection';
 import { FeatureLab } from './FeatureLab';
-import { BentoGrid } from './BentoGrid';
+import { MarketingFeatureBento } from '../ui/marketing-feature-bento';
 import { WalkthroughSection } from './WalkthroughSection';
 import { ProofSection } from './ProofSection';
 import { PricingSection } from './PricingSection';
@@ -21,7 +21,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ dark, onThemeToggle })
       <HeroSection />
       <StorySection />
       <FeatureLab />
-      <BentoGrid />
+      <MarketingFeatureBento />
       <WalkthroughSection />
       <ProofSection />
       <PricingSection />
